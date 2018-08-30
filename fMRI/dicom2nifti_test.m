@@ -1,0 +1,1 @@
+dicom2nifti('autodetect','yes','dicom_dir', '/Users/David_Saltzman/Desktop/input/cthulhu/1/', 'subject_dir', '/Users/David_Saltzman/Desktop/input/cthulhu/1/');
