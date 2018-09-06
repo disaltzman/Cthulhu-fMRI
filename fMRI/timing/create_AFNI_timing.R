@@ -135,7 +135,7 @@ for (i in unique(df$subject)){
   temp_data <- select(temp_data,"subject","timing","num_block")
   temp_data$arbitrary_key[1:15] <- 1:15 
   temp_data <- spread(temp_data,arbitrary_key,timing)
-  t <- assign(paste0("sinestep7_timing_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"2"=temp_data$`2`,"3"=temp_data$`3`,
+  t <- assign(paste0("sinestep7_timing_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
                                                            "4"=temp_data$`4`,"5"=temp_data$`5`,"6"=temp_data$`6`,"7"=temp_data$`7`,"8"=temp_data$`8`,
                                                            "9"=temp_data$`9`,"10"=temp_data$`10`,"11"=temp_data$`11`,
                                                            "12"=temp_data$`12`,"13"=temp_data$`13`,"14"=temp_data$`14`,"15"=temp_data$`15`))
