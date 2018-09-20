@@ -332,9 +332,6 @@ posttest3_figure$condition <- ifelse(posttest3_figure$fname2=="5-7","different",
 ggplot(posttest3_figure,aes(x=reorder(fname2,-mean),y=mean,fill=condition)) + geom_bar(stat="identity")
 
 
-
-
-
 ### SESSION 4 ###
 
 session4_performance = ddply(session4,.(subject,block),summarize,mean=mean(correct_response))
