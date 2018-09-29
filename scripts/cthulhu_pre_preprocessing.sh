@@ -15,7 +15,7 @@ set slices = 52
 set volumes = 161
 set TR = 2000
 
-foreach subject (cth9)
+foreach subject (cth2 cth3 cth6 cth8)
 foreach run (1 2 3 4 5 6 7 8 9 10)
 
 cd ${dir}/${subject}/MP/
