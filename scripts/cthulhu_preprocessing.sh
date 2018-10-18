@@ -2,7 +2,7 @@
 
 set top_dir = /Volumes/netapp/MyersLab/Dave/Cthulhu/data 
 
-foreach subj (1 2 3 6 8)
+foreach subj (10 11)
 
 set anat_dir = $top_dir/cth${subj}/briks
 set epi_dir = $top_dir/cth${subj}/briks	

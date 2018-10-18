@@ -6,10 +6,13 @@ library(dplyr)
 library(data.table)
 library(Rmisc)
 library(ggplot2)
+library(cowplot)
 library(ez)
 library(lme4)
 library(tidyverse)
 library(scales)
+library(gdata)
+source("https://raw.githubusercontent.com/janhove/janhove.github.io/master/RCode/sortLvls.R")
 
 theme_set(theme_bw())
 
@@ -29,9 +32,6 @@ for (i in file_names) {
 df$correct_response <- as.numeric(df$correct_response)
 df$trial <- as.numeric(df$trial)
 df$rt <- as.numeric(df$rt)
-
-# drop participants
-df <- subset(df,subject!=401)
 
 #### FOR VOWEL SESSIONS ####
 
@@ -58,7 +58,7 @@ pretest1_performance = ddply(pretest1,.(subject),summarize,mean=mean(correct_res
 posttest1_performance = ddply(posttest1,.(subject),summarize,mean=mean(correct_response))
 training1.1_performance = ddply(training1.1,.(subject),summarize,mean=mean(correct_response))
 training1.2_performance = ddply(training1.2,.(subject),summarize,mean=mean(correct_response))
-training1.3_performance = ddply(training1.3,.(subject),summarize,mean=mean(correct_response))
+training1.3_performance = ddply(training1.3,.(ssubject),summarize,mean=mean(correct_response))
 
 # create pretest performance figure
 pretest1$fname2 <- ifelse(pretest1$fname=="i-y-u_step1-step1.wav","1-1",NA)
@@ -95,7 +95,10 @@ pretest1_figure$condition <- ifelse(pretest1_figure$fname2=="4-6","different",pr
 pretest1_figure$condition <- ifelse(pretest1_figure$fname2=="5-7","different",pretest1_figure$condition)
 
 
-ggplot(pretest1_figure,aes(x=reorder(fname2,-mean),y=mean,fill=condition)) + geom_bar(stat="identity")
+pretest1_figure$fname2 <- as.factor(pretest1_figure$fname2)
+pretest1_figure$fname3 <- sortLvls.fnc(pretest1_figure$fname2, c(1,3,5,7,9,11,12,2,4,6,8,10))
+
+pretest1_barplot <- ggplot(pretest1_figure,aes(x=fname3,y=mean,fill=condition)) + geom_bar(stat="identity") + ggtitle(label="Pre-Test Day 1")
 
 #### create posttest performance figure
 # create variable to combine forwards/backwards discrimination steps
@@ -133,8 +136,10 @@ posttest1_figure$condition <- ifelse(posttest1_figure$fname2=="3-5","different",
 posttest1_figure$condition <- ifelse(posttest1_figure$fname2=="4-6","different",posttest1_figure$condition)
 posttest1_figure$condition <- ifelse(posttest1_figure$fname2=="5-7","different",posttest1_figure$condition)
 
-ggplot(posttest1_figure,aes(x=reorder(fname2,-mean),y=mean,fill=condition)) + geom_bar(stat="identity")
+posttest1_figure$fname2 <- as.factor(posttest1_figure$fname2)
+posttest1_figure$fname3 <- sortLvls.fnc(posttest1_figure$fname2, c(1,3,5,7,9,11,12,2,4,6,8,10))
 
+posttest1_barplot <- ggplot(posttest1_figure,aes(x=fname3,y=mean,fill=condition)) + geom_bar(stat="identity") + ggtitle(label="Post-Test Day 1")
 
 
 
@@ -152,7 +157,7 @@ continuum2 <- subset(session2,block == "continuum")
 
 # summarize performance by subject
 pretest2_performance = ddply(pretest2,.(subject),summarize,mean=mean(correct_response))
-posttest1_performance = ddply(posttest1,.(subject),summarize,mean=mean(correct_response))
+posttest2_performance = ddply(posttest2,.(subject),summarize,mean=mean(correct_response))
 training2.1_performance = ddply(training2.1,.(subject),summarize,mean=mean(correct_response))
 training2.2_performance = ddply(training2.2,.(subject),summarize,mean=mean(correct_response))
 training2.3_performance = ddply(training2.3,.(subject),summarize,mean=mean(correct_response))
@@ -191,8 +196,11 @@ pretest2_figure$condition <- ifelse(pretest2_figure$fname2=="3-5","different",pr
 pretest2_figure$condition <- ifelse(pretest2_figure$fname2=="4-6","different",pretest2_figure$condition)
 pretest2_figure$condition <- ifelse(pretest2_figure$fname2=="5-7","different",pretest2_figure$condition)
 
+pretest2_figure$fname2 <- as.factor(pretest2_figure$fname2)
+pretest2_figure$fname3 <- sortLvls.fnc(pretest2_figure$fname2, c(1,3,5,7,9,11,12,2,4,6,8,10))
 
-ggplot(pretest2_figure,aes(x=reorder(fname2,-mean),y=mean,fill=condition)) + geom_bar(stat="identity")
+pretest2_barplot <- ggplot(pretest2_figure,aes(x=fname3,y=mean,fill=condition)) + geom_bar(stat="identity") + ggtitle(label="Pre-Test Day 2")
+
 
 #### create posttest2 performance figure
 # create variable to combine forwards/backwards discrimination steps
@@ -230,8 +238,10 @@ posttest2_figure$condition <- ifelse(posttest2_figure$fname2=="3-5","different",
 posttest2_figure$condition <- ifelse(posttest2_figure$fname2=="4-6","different",posttest2_figure$condition)
 posttest2_figure$condition <- ifelse(posttest2_figure$fname2=="5-7","different",posttest2_figure$condition)
 
-ggplot(posttest2_figure,aes(x=reorder(fname2,-mean),y=mean,fill=condition)) + geom_bar(stat="identity")
+posttest2_figure$fname2 <- as.factor(posttest2_figure$fname2)
+posttest2_figure$fname3 <- sortLvls.fnc(posttest2_figure$fname2, c(1,3,5,7,9,11,12,2,4,6,8,10))
 
+posttest2_barplot <- ggplot(posttest2_figure,aes(x=fname3,y=mean,fill=condition)) + geom_bar(stat="identity") + ggtitle(label="Post-Test Day 2")
 
 
 
@@ -251,7 +261,7 @@ continuum3 <- subset(session3,block == "continuum")
 
 # summarize performance by subject
 pretest3_performance = ddply(pretest3,.(subject),summarize,mean=mean(correct_response))
-posttest1_performance = ddply(posttest1,.(subject),summarize,mean=mean(correct_response))
+posttest3_performance = ddply(posttest3,.(subject),summarize,mean=mean(correct_response))
 training3.1_performance = ddply(training3.1,.(subject),summarize,mean=mean(correct_response))
 training3.2_performance = ddply(training3.2,.(subject),summarize,mean=mean(correct_response))
 training3.3_performance = ddply(training3.3,.(subject),summarize,mean=mean(correct_response))
@@ -291,7 +301,10 @@ pretest3_figure$condition <- ifelse(pretest3_figure$fname2=="4-6","different",pr
 pretest3_figure$condition <- ifelse(pretest3_figure$fname2=="5-7","different",pretest3_figure$condition)
 
 
-ggplot(pretest3_figure,aes(x=reorder(fname2,-mean),y=mean,fill=condition)) + geom_bar(stat="identity")
+pretest3_figure$fname2 <- as.factor(pretest3_figure$fname2)
+pretest3_figure$fname3 <- sortLvls.fnc(pretest3_figure$fname2, c(1,3,5,7,9,11,12,2,4,6,8,10))
+
+pretest3_barplot <- ggplot(pretest3_figure,aes(x=fname3,y=mean,fill=condition)) + geom_bar(stat="identity") + ggtitle(label="Pre-Test Day 3")
 
 #### create posttest3 performance figure
 # create variable to combine forwards/backwards discrimination steps
@@ -329,10 +342,54 @@ posttest3_figure$condition <- ifelse(posttest3_figure$fname2=="3-5","different",
 posttest3_figure$condition <- ifelse(posttest3_figure$fname2=="4-6","different",posttest3_figure$condition)
 posttest3_figure$condition <- ifelse(posttest3_figure$fname2=="5-7","different",posttest3_figure$condition)
 
-ggplot(posttest3_figure,aes(x=reorder(fname2,-mean),y=mean,fill=condition)) + geom_bar(stat="identity")
+posttest3_figure$fname2 <- as.factor(posttest3_figure$fname2)
+posttest3_figure$fname3 <- sortLvls.fnc(posttest3_figure$fname2, c(1,3,5,7,9,11,12,2,4,6,8,10))
+
+posttest3_barplot <- ggplot(posttest3_figure,aes(x=fname3,y=mean,fill=condition)) + geom_bar(stat="identity") + ggtitle(label="Post-Test Day 3")
 
 
-### SESSION 4 ###
+#### SESSION 4 ####
 
 session4_performance = ddply(session4,.(subject,block),summarize,mean=mean(correct_response))
 
+# bar plot for session 4
+ggplot(session4_performance,aes(x=subject,y=mean)) + geom_bar(stat="identity",position="dodge",aes(fill=block)) + 
+  geom_hline(yintercept=0.8,linetype="dashed")
+                              
+
+#### FOR SINE SESSION ####
+
+sine_session <- subset(df,session == "S3")
+
+# split by block
+pretest_sine <- subset(sine_session,block == "pretest_discrimination")
+posttest_sine <- subset(sine_session,block == "posttest_discrimination")
+training_sine.1 <- subset(sine_session,block == "training1")
+training_sine.2 <- subset(sine_session,block == "training2")
+training_sine.3 <- subset(sine_session,block == "training3")
+continuum1_sine <- subset(sine_session,block == "continuum")
+
+# summarize performance by subject
+pretest_sine_performance = ddply(pretest_sine,.(subject),summarize,mean=mean(correct_response))
+posttest_sine_performance = ddply(posttest_sine,.(subject),summarize,mean=mean(correct_response))
+training_sine.1_performance = ddply(training_sine.1,.(subject),summarize,mean=mean(correct_response))
+training_sine.2_performance = ddply(training_sine.2,.(subject),summarize,mean=mean(correct_response))
+training_sine.3_performance = ddply(training_sine.3,.(subject),summarize,mean=mean(correct_response))
+
+
+#### OTHER FIGURES ####
+
+### grid of discrimination plots from each day
+plot_grid(pretest1_barplot,pretest2_barplot,pretest3_barplot,posttest1_barplot,posttest2_barplot,posttest3_barplot)
+
+# plot by subject performance for each task across each day
+# combine performances across tasks and days
+by_subject_performance <- combine(pretest1_performance,posttest1_performance,pretest2_performance,posttest2_performance,
+                                  pretest3_performance,posttest3_performance,pretest_sine_performance,posttest_sine_performance)
+
+# add new variable to work around day-specific subject ID's
+by_subject_performance$subject2 <- ifelse(nchar(by_subject_performance$subject)==3,substr(by_subject_performance$subject,1,1),substr(by_subject_performance$subject,1,2))
+
+# by subject performance for each discrimination task
+ggplot(by_subject_performance,aes(x=subject2,y=mean)) + geom_bar(stat="identity",position="dodge",aes(fill=source))
+                                          
