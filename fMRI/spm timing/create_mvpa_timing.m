@@ -4,7 +4,7 @@ allNames = {sessionFiles.name}';
 
 % specify the name of your different conditions as they appear in your
 % behavioral output
-conditionNames = {'silence.wav','vowelstep1.wav','vowelstep3.wav','vowelstep5.wav','vowelstep7.wav','sinestep1.wav','sinestep3.wav','sinestep5.wav','sinestep7.wav','catch.wav'};
+conditionNames = {'vowelstep1.wav','vowelstep3.wav','vowelstep5.wav','vowelstep7.wav','sinestep1.wav','sinestep3.wav','sinestep5.wav','sinestep7.wav','catch.wav'};
 conditions = length(conditionNames);
 
 % specify the number of runs and the amount of rows in your excel file
@@ -14,7 +14,7 @@ runLength = 160;
 
 % specify what row of your excel file data begins on (this is usually row 2
 % if you have headers in the first row)
-runStart = 2;
+runStart = 92;
 
 % go through excel files to grab relevant column information for SPM
 for i=1:length(sessionFiles)
@@ -58,6 +58,7 @@ for i=1:length(sessionFiles)
         end
         
         % save new data for SPM
+        %timing_name = erase(sessionFiles.name,'.xlsx');
         save(num2str(r),'names','onsets','durations');
         clear onsets 
     end       
