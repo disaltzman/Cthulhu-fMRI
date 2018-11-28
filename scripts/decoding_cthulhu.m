@@ -7,8 +7,16 @@
 
 % Make sure the decoding toolbox and your favorite software (SPM or AFNI)
 % are on the Matlab path (e.g. addpath('/home/decoding_toolbox') )
-addpath('$ADD FULL PATH TO TOOLBOX AS STRING OR MAKE THIS LINE A COMMENT IF IT IS ALREADY$')
-addpath('$ADD FULL PATH TO TOOLBOX AS STRING OR MAKE THIS LINE A COMMENT IF IT IS ALREADY$')
+%addpath('$ADD FULL PATH TO TOOLBOX AS STRING OR MAKE THIS LINE A COMMENT IF IT IS ALREADY$')
+%addpath('$ADD FULL PATH TO TOOLBOX AS STRING OR MAKE THIS LINE A COMMENT IF IT IS ALREADY$')
+
+clear; 
+dir_base = '/Volumes/netapp/Myerslab/Dave/Cthulhu/data/';
+
+subjects = {'cth8','cth9','cth10','cth11'};
+subIndsToProcess = 1:length(subjects);
+
+for s = subIndsToProcess
 
 % Set defaults
 cfg = decoding_defaults;
@@ -18,29 +26,29 @@ cfg.analysis = 'searchlight';
 cfg.searchlight.radius = 3; % use searchlight of radius 3 (by default in voxels), see more details below
 
 % Set the output directory where data will be saved, e.g. 'c:\exp\results\buttonpress'
-cfg.results.dir = '/Users/David_Saltzman/Desktop/output/Cthulhu/'
+cfg.results.dir = [dir_base subjects{s} '/mvpa/output/searchlight'];
 
 % Set the filepath where your SPM.mat and all related betas are, e.g. 'c:\exp\glm\model_button'
-beta_loc = '/Users/David_Saltzman/Desktop/input/1/output/'
+beta_loc = [dir_base subjects{s} '/mvpa/output'];
 
 % Set the filename of your brain mask (or your ROI masks as cell matrix) 
 % for searchlight or wholebrain e.g. 'c:\exp\glm\model_button\mask.img' OR 
 % for ROI e.g. {'c:\exp\roi\roimaskleft.img', 'c:\exp\roi\roimaskright.img'}
 % You can also use a mask file with multiple masks inside that are
 % separated by different integer values (a "multi-mask")
-cfg.files.mask = '/Users/David_Saltzman/Desktop/input/1/output/mask.nii'
+cfg.files.mask = [dir_base subjects{s} '/mvpa/output/mask.nii'];
 
 % Set the label names to the regressor names which you want to use for 
 % decoding, e.g. 'button left' and 'button right'
 % don't remember the names? -> run display_regressor_names(beta_loc)
-labelname1 = 'vowelstep1.wav'
-labelname2 = 'vowelstep3.wav'
-labelname3 = 'vowelstep5.wav'
-labelname4 = 'vowelstep7.wav'
-labelname5 = 'sinestep1.wav'
-labelname6 = 'sinestep3.wav'
-labelname7 = 'sinestep5.wav'
-labelname8 = 'sinestep7.wav'
+labelname1 = 'vowelstep1.wav';
+labelname2 = 'vowelstep3.wav';
+labelname3 = 'vowelstep5.wav';
+labelname4 = 'vowelstep7.wav';
+labelname5 = 'sinestep1.wav';
+labelname6 = 'sinestep3.wav';
+labelname7 = 'sinestep5.wav';
+labelname8 = 'sinestep7.wav';
 
 
 %% Set additional parameters
@@ -89,14 +97,15 @@ cfg.design = make_design_cv(cfg);
 % Run decoding
 results = decoding(cfg);
 
-cfg.design = make_design_permutation(cfg, 1000, 1); % creates one design with 1000 permutations
-%cfg.results.dir = [dir_results subjects{s} '/permutation'];
-cfg.results.dir = '/Users/David_Saltzman/Desktop/output/Cthulhu/permutation/statistics';
-[reference,cfg] = decoding(cfg); % run permutations
+% cfg.design = make_design_permutation(cfg, 1000, 1); % creates one design with 1000 permutations
+% cfg.results.dir = [dir_base subjects{s} '/mvpa/output/permutation'];
+% [reference,cfg] = decoding(cfg); % run permutations
+% 
+% cfg.stats.test = 'permutation' % set test
+% cfg.stats.tail = 'both';   % set tail of statistical correction
+% cfg.stats.output = 'accuracy_minus_chance';   % choose from all original outputs
+% cfg.stats.results.write = 1;
+% 
+% p = decoding_statistics(cfg,results,reference);
 
-cfg.stats.test = 'permutation' % set test
-cfg.stats.tail = 'right';   % set tail of statistical correction
-cfg.stats.output = 'accuracy_minus_chance';   % choose from all original outputs
-cfg.stats.results.write = 1;
-
-p = decoding_statistics(cfg,results,reference);
+end
