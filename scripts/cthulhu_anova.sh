@@ -1,0 +1,184 @@
+#!/bin/csh -f
+
+
+# For this analysis, both groups are treated equally
+# a levels = SoundType; 1=Sine, 2=Vowel
+# b levels = Continuum Point: 1=step1, 2=step3 3=step5 4=step7
+#  for sine, [4]=sinestep1; [7]=sinestep3; [10]=sinestep5; [13]=sinestep7;
+#  for vowel, [16]=vowelstep1; [19]=vowelstep3; [22]=vowelstep5; [25]=vowelstep7;
+cd /Volumes/netapp/Myerslab/Dave/Cthulhu/data
+
+3dANOVA3 -type 4 \
+-alevels 2 \
+-blevels 4 \
+-clevels 19 \
+-dset 1 1 1 cth1/cth1.preproc/'stats.1+tlrc[4]' \
+-dset 1 2 1 cth1/cth1.preproc/'stats.1+tlrc[7]' \
+-dset 1 3 1 cth1/cth1.preproc/'stats.1+tlrc[10]' \
+-dset 1 4 1 cth1/cth1.preproc/'stats.1+tlrc[13]' \
+-dset 2 1 1 cth1/cth1.preproc/'stats.1+tlrc[16]' \
+-dset 2 2 1 cth1/cth1.preproc/'stats.1+tlrc[19]' \
+-dset 2 3 1 cth1/cth1.preproc/'stats.1+tlrc[22]' \
+-dset 2 4 1 cth1/cth1.preproc/'stats.1+tlrc[25]' \
+-dset 1 1 2 cth2/cth2.preproc/'stats.2+tlrc[4]' \
+-dset 1 2 2 cth2/cth2.preproc/'stats.2+tlrc[7]' \
+-dset 1 3 2 cth2/cth2.preproc/'stats.2+tlrc[10]' \
+-dset 1 4 2 cth2/cth2.preproc/'stats.2+tlrc[13]' \
+-dset 2 1 2 cth2/cth2.preproc/'stats.2+tlrc[16]' \
+-dset 2 2 2 cth2/cth2.preproc/'stats.2+tlrc[19]' \
+-dset 2 3 2 cth2/cth2.preproc/'stats.2+tlrc[22]' \
+-dset 2 4 2 cth2/cth2.preproc/'stats.2+tlrc[25]' \
+-dset 1 1 3 cth3/cth3.preproc/'stats.3+tlrc[4]' \
+-dset 1 2 3 cth3/cth3.preproc/'stats.3+tlrc[7]' \
+-dset 1 3 3 cth3/cth3.preproc/'stats.3+tlrc[10]' \
+-dset 1 4 3 cth3/cth3.preproc/'stats.3+tlrc[13]' \
+-dset 2 1 3 cth3/cth3.preproc/'stats.3+tlrc[16]' \
+-dset 2 2 3 cth3/cth3.preproc/'stats.3+tlrc[19]' \
+-dset 2 3 3 cth3/cth3.preproc/'stats.3+tlrc[22]' \
+-dset 2 4 3 cth3/cth3.preproc/'stats.3+tlrc[25]' \
+-dset 1 1 4 cth6/cth6.preproc/'stats.6+tlrc[4]' \
+-dset 1 2 4 cth6/cth6.preproc/'stats.6+tlrc[7]' \
+-dset 1 3 4 cth6/cth6.preproc/'stats.6+tlrc[10]' \
+-dset 1 4 4 cth6/cth6.preproc/'stats.6+tlrc[13]' \
+-dset 2 1 4 cth6/cth6.preproc/'stats.6+tlrc[16]' \
+-dset 2 2 4 cth6/cth6.preproc/'stats.6+tlrc[19]' \
+-dset 2 3 4 cth6/cth6.preproc/'stats.6+tlrc[22]' \
+-dset 2 4 4 cth6/cth6.preproc/'stats.6+tlrc[25]' \
+-dset 1 1 5 cth8/cth8.preproc/'stats.8+tlrc[4]' \
+-dset 1 2 5 cth8/cth8.preproc/'stats.8+tlrc[7]' \
+-dset 1 3 5 cth8/cth8.preproc/'stats.8+tlrc[10]' \
+-dset 1 4 5 cth8/cth8.preproc/'stats.8+tlrc[13]' \
+-dset 2 1 5 cth8/cth8.preproc/'stats.8+tlrc[16]' \
+-dset 2 2 5 cth8/cth8.preproc/'stats.8+tlrc[19]' \
+-dset 2 3 5 cth8/cth8.preproc/'stats.8+tlrc[22]' \
+-dset 2 4 5 cth8/cth8.preproc/'stats.8+tlrc[25]' \
+-dset 1 1 6 cth9/cth9.preproc/'stats.9+tlrc[4]' \
+-dset 1 2 6 cth9/cth9.preproc/'stats.9+tlrc[7]' \
+-dset 1 3 6 cth9/cth9.preproc/'stats.9+tlrc[10]' \
+-dset 1 4 6 cth9/cth9.preproc/'stats.9+tlrc[13]' \
+-dset 2 1 6 cth9/cth9.preproc/'stats.9+tlrc[16]' \
+-dset 2 2 6 cth9/cth9.preproc/'stats.9+tlrc[19]' \
+-dset 2 3 6 cth9/cth9.preproc/'stats.9+tlrc[22]' \
+-dset 2 4 6 cth9/cth9.preproc/'stats.9+tlrc[25]' \
+-dset 1 1 7 cth10/cth10.preproc/'stats.10+tlrc[4]' \
+-dset 1 2 7 cth10/cth10.preproc/'stats.10+tlrc[7]' \
+-dset 1 3 7 cth10/cth10.preproc/'stats.10+tlrc[10]' \
+-dset 1 4 7 cth10/cth10.preproc/'stats.10+tlrc[13]' \
+-dset 2 1 7 cth10/cth10.preproc/'stats.10+tlrc[16]' \
+-dset 2 2 7 cth10/cth10.preproc/'stats.10+tlrc[19]' \
+-dset 2 3 7 cth10/cth10.preproc/'stats.10+tlrc[22]' \
+-dset 2 4 7 cth10/cth10.preproc/'stats.10+tlrc[25]' \
+-dset 1 1 8 cth11/cth11.preproc/'stats.11+tlrc[4]' \
+-dset 1 2 8 cth11/cth11.preproc/'stats.11+tlrc[7]' \
+-dset 1 3 8 cth11/cth11.preproc/'stats.11+tlrc[10]' \
+-dset 1 4 8 cth11/cth11.preproc/'stats.11+tlrc[13]' \
+-dset 2 1 8 cth11/cth11.preproc/'stats.11+tlrc[16]' \
+-dset 2 2 8 cth11/cth11.preproc/'stats.11+tlrc[19]' \
+-dset 2 3 8 cth11/cth11.preproc/'stats.11+tlrc[22]' \
+-dset 2 4 8 cth11/cth11.preproc/'stats.11+tlrc[25]' \
+-dset 1 1 9 cth12/cth12.preproc/'stats.12+tlrc[4]' \
+-dset 1 2 9 cth12/cth12.preproc/'stats.12+tlrc[7]' \
+-dset 1 3 9 cth12/cth12.preproc/'stats.12+tlrc[10]' \
+-dset 1 4 9 cth12/cth12.preproc/'stats.12+tlrc[13]' \
+-dset 2 1 9 cth12/cth12.preproc/'stats.12+tlrc[16]' \
+-dset 2 2 9 cth12/cth12.preproc/'stats.12+tlrc[19]' \
+-dset 2 3 9 cth12/cth12.preproc/'stats.12+tlrc[22]' \
+-dset 2 4 9 cth12/cth12.preproc/'stats.12+tlrc[25]' \
+-dset 1 1 10 cth14/cth14.preproc/'stats.14+tlrc[4]' \
+-dset 1 2 10 cth14/cth14.preproc/'stats.14+tlrc[7]' \
+-dset 1 3 10 cth14/cth14.preproc/'stats.14+tlrc[10]' \
+-dset 1 4 10 cth14/cth14.preproc/'stats.14+tlrc[13]' \
+-dset 2 1 10 cth14/cth14.preproc/'stats.14+tlrc[16]' \
+-dset 2 2 10 cth14/cth14.preproc/'stats.14+tlrc[19]' \
+-dset 2 3 10 cth14/cth14.preproc/'stats.14+tlrc[22]' \
+-dset 2 4 10 cth14/cth14.preproc/'stats.14+tlrc[25]' \
+-dset 1 1 11 cth15/cth15.preproc/'stats.15+tlrc[4]' \
+-dset 1 2 11 cth15/cth15.preproc/'stats.15+tlrc[7]' \
+-dset 1 3 11 cth15/cth15.preproc/'stats.15+tlrc[10]' \
+-dset 1 4 11 cth15/cth15.preproc/'stats.15+tlrc[13]' \
+-dset 2 1 11 cth15/cth15.preproc/'stats.15+tlrc[16]' \
+-dset 2 2 11 cth15/cth15.preproc/'stats.15+tlrc[19]' \
+-dset 2 3 11 cth15/cth15.preproc/'stats.15+tlrc[22]' \
+-dset 2 4 11 cth15/cth15.preproc/'stats.15+tlrc[25]' \
+-dset 1	1 12 cth16/cth16.preproc/'stats.16+tlrc[4]' \
+-dset 1	2 12 cth16/cth16.preproc/'stats.16+tlrc[7]' \
+-dset 1	3 12 cth16/cth16.preproc/'stats.16+tlrc[10]' \
+-dset 1	4 12 cth16/cth16.preproc/'stats.16+tlrc[13]' \
+-dset 2	1 12 cth16/cth16.preproc/'stats.16+tlrc[16]' \
+-dset 2	2 12 cth16/cth16.preproc/'stats.16+tlrc[19]' \
+-dset 2	3 12 cth16/cth16.preproc/'stats.16+tlrc[22]' \
+-dset 2	4 12 cth16/cth16.preproc/'stats.16+tlrc[25]' \
+-dset 1	1 13 cth17/cth17.preproc/'stats.17+tlrc[4]' \
+-dset 1	2 13 cth17/cth17.preproc/'stats.17+tlrc[7]' \
+-dset 1	3 13 cth17/cth17.preproc/'stats.17+tlrc[10]' \
+-dset 1	4 13 cth17/cth17.preproc/'stats.17+tlrc[13]' \
+-dset 2	1 13 cth17/cth17.preproc/'stats.17+tlrc[16]' \
+-dset 2	2 13 cth17/cth17.preproc/'stats.17+tlrc[19]' \
+-dset 2	3 13 cth17/cth17.preproc/'stats.17+tlrc[22]' \
+-dset 2	4 13 cth17/cth17.preproc/'stats.17+tlrc[25]' \
+-dset 1 1 14 cth18/cth18.preproc/'stats.18+tlrc[4]' \
+-dset 1 2 14 cth18/cth18.preproc/'stats.18+tlrc[7]' \
+-dset 1 3 14 cth18/cth18.preproc/'stats.18+tlrc[10]' \
+-dset 1 4 14 cth18/cth18.preproc/'stats.18+tlrc[13]' \
+-dset 2 1 14 cth18/cth18.preproc/'stats.18+tlrc[16]' \
+-dset 2 2 14 cth18/cth18.preproc/'stats.18+tlrc[19]' \
+-dset 2 3 14 cth18/cth18.preproc/'stats.18+tlrc[22]' \
+-dset 2 4 14 cth18/cth18.preproc/'stats.18+tlrc[25]' \
+-dset 1 1 15 cth20/cth20.preproc/'stats.20+tlrc[4]' \
+-dset 1 2 15 cth20/cth20.preproc/'stats.20+tlrc[7]' \
+-dset 1 3 15 cth20/cth20.preproc/'stats.20+tlrc[10]' \
+-dset 1 4 15 cth20/cth20.preproc/'stats.20+tlrc[13]' \
+-dset 2 1 15 cth20/cth20.preproc/'stats.20+tlrc[16]' \
+-dset 2 2 15 cth20/cth20.preproc/'stats.20+tlrc[19]' \
+-dset 2 3 15 cth20/cth20.preproc/'stats.20+tlrc[22]' \
+-dset 2 4 15 cth20/cth20.preproc/'stats.20+tlrc[25]' \
+-dset 1 1 16 cth21/cth21.preproc/'stats.21+tlrc[4]' \
+-dset 1 2 16 cth21/cth21.preproc/'stats.21+tlrc[7]' \
+-dset 1 3 16 cth21/cth21.preproc/'stats.21+tlrc[10]' \
+-dset 1 4 16 cth21/cth21.preproc/'stats.21+tlrc[13]' \
+-dset 2 1 16 cth21/cth21.preproc/'stats.21+tlrc[16]' \
+-dset 2 2 16 cth21/cth21.preproc/'stats.21+tlrc[19]' \
+-dset 2 3 16 cth21/cth21.preproc/'stats.21+tlrc[22]' \
+-dset 2 4 16 cth21/cth21.preproc/'stats.21+tlrc[25]' \
+-dset 1 1 17 cth22/cth22.preproc/'stats.22+tlrc[4]' \
+-dset 1 2 17 cth22/cth22.preproc/'stats.22+tlrc[7]' \
+-dset 1 3 17 cth22/cth22.preproc/'stats.22+tlrc[10]' \
+-dset 1 4 17 cth22/cth22.preproc/'stats.22+tlrc[13]' \
+-dset 2 1 17 cth22/cth22.preproc/'stats.22+tlrc[16]' \
+-dset 2 2 17 cth22/cth22.preproc/'stats.22+tlrc[19]' \
+-dset 2 3 17 cth22/cth22.preproc/'stats.22+tlrc[22]' \
+-dset 2 4 17 cth22/cth22.preproc/'stats.22+tlrc[25]' \
+-dset 1 1 18 cth24/cth24.preproc/'stats.24+tlrc[4]' \
+-dset 1 2 18 cth24/cth24.preproc/'stats.24+tlrc[7]' \
+-dset 1 3 18 cth24/cth24.preproc/'stats.24+tlrc[10]' \
+-dset 1 4 18 cth24/cth24.preproc/'stats.24+tlrc[13]' \
+-dset 2 1 18 cth24/cth24.preproc/'stats.24+tlrc[16]' \
+-dset 2 2 18 cth24/cth24.preproc/'stats.24+tlrc[19]' \
+-dset 2 3 18 cth24/cth24.preproc/'stats.24+tlrc[22]' \
+-dset 2 4 18 cth24/cth24.preproc/'stats.24+tlrc[25]' \
+-dset 1 1 19 cth25/cth25.preproc/'stats.25+tlrc[4]' \
+-dset 1 2 19 cth25/cth25.preproc/'stats.25+tlrc[7]' \
+-dset 1 3 19 cth25/cth25.preproc/'stats.25+tlrc[10]' \
+-dset 1 4 19 cth25/cth25.preproc/'stats.25+tlrc[13]' \
+-dset 2 1 19 cth25/cth25.preproc/'stats.25+tlrc[16]' \
+-dset 2 2 19 cth25/cth25.preproc/'stats.25+tlrc[19]' \
+-dset 2 3 19 cth25/cth25.preproc/'stats.25+tlrc[22]' \
+-dset 2 4 19 cth25/cth25.preproc/'stats.25+tlrc[25]' \
+\
+-amean 1 Sine \
+-amean 2 Vowel \
+\
+-bmean 1 step1 \
+-bmean 2 step3 \
+-bmean 3 step5 \
+-bmean 4 step7 \
+\
+-fab SoundTypebyContinuumStep \
+\
+-adiff 2 1 Vowel-Sine \
+\
+-bcontr -0.5 0.5 0.5 -0.5 Boundary-Endpoint \
+-Abcontr 1 : -0.5 0.5 0.5 -0.5 SINE_Boundary-Endpoint \
+-Abcontr 2 : -0.5 0.5 0.5 -0.5 VOWEL_Boundary-Endpoint \
+\
+-bucket SoundTypebyContinuumStepANOVA
