@@ -1,8 +1,8 @@
 #!/bin/tcsh -f
 
-set top_dir = /Volumes/netapp/MyersLab/Dave/Cthulhu/data 
+set top_dir = /Volumes/netapp-1/Research/MyersLab/Dave/Cthulhu/data 
 
-foreach subj (2 3 6 8 9 10 11 12 14 15 16 17 18 20 21 22 24 25)
+foreach subj (1 2 3 6 8 9 10 11 12 14 15 16 17 18 20 21 22 24 25)
 set anat_dir = $top_dir/cth${subj}/briks
 set epi_dir = $top_dir/cth${subj}/briks	
 
@@ -41,10 +41,9 @@ $top_dir/cth${subj}/zfalsealarm_timing_subj${subj}.txt \
 catch sinestep1 sinestep3 sinestep5 sinestep7 vowelstep1 vowelstep3 vowelstep5 vowelstep7 zfalsealarm \
 -regress_local_times \
 -regress_basis GAM \
--regress_opts_3dD -allzero_OK -jobs 6 -GOFORIT 5 \
+-regress_opts_3dD -allzero_OK -jobs 3 -GOFORIT 5 \
 -regress_censor_motion 0.3 \
 -regress_censor_outliers 0.1 \
--regress_censor_first_trs 2 \
 -regress_est_blur_epits \
 -regress_est_blur_errts \
 -regress_make_cbucket yes \

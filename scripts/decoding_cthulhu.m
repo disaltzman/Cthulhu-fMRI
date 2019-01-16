@@ -13,7 +13,7 @@
 clear; 
 dir_base = '/Volumes/netapp/Myerslab/Dave/Cthulhu/data/';
 
-subjects = {'cth8','cth9','cth10','cth11'};
+subjects = {'cth1'};
 subIndsToProcess = 1:length(subjects);
 
 for s = subIndsToProcess
@@ -21,35 +21,43 @@ for s = subIndsToProcess
 % Set defaults
 cfg = decoding_defaults;
 
+% Make sure to set software to AFNI
+cfg.software = 'AFNI';
+
 % Set the analysis that should be performed (default is 'searchlight')
 cfg.analysis = 'searchlight';
 cfg.searchlight.radius = 3; % use searchlight of radius 3 (by default in voxels), see more details below
 
 % Set the output directory where data will be saved, e.g. 'c:\exp\results\buttonpress'
-cfg.results.dir = [dir_base subjects{s} '/mvpa/output/searchlight'];
+cfg.results.dir = [dir_base subjects{s} '/' subjects{s} '.preproc_mvpa/searchlight'];
 
-% Set the filepath where your SPM.mat and all related betas are, e.g. 'c:\exp\glm\model_button'
-beta_loc = [dir_base subjects{s} '/mvpa/output'];
+% Set the full path to the files where your coefficients for each run are stored e.g. 
+% {'/misc/data/mystudy/results1+orig.BRIK','/misc/data/mystudy/results2+orig.BRIK',...}
+%    If all your BRIK files are in the same folder, you can use the
+%    following function to call them all together in one line:
+%    beta_loc = get_filenames_afni('/misc/data/mystudy/results*+orig.BRIK')
+beta_loc = get_filenames_afni([dir_base subjects{s} '/' subjects{s} '.preproc_mvpa/readyforMVPA/*.BRIK']);
 
 % Set the filename of your brain mask (or your ROI masks as cell matrix) 
 % for searchlight or wholebrain e.g. 'c:\exp\glm\model_button\mask.img' OR 
 % for ROI e.g. {'c:\exp\roi\roimaskleft.img', 'c:\exp\roi\roimaskright.img'}
 % You can also use a mask file with multiple masks inside that are
 % separated by different integer values (a "multi-mask")
-cfg.files.mask = [dir_base subjects{s} '/mvpa/output/mask.nii'];
+cfg.files.mask = [dir_base subjects{s} '/' subjects{s} '.preproc_mvpa/mask_anat.1+orig.BRIK'];
 
 % Set the label names to the regressor names which you want to use for 
 % decoding, e.g. 'button left' and 'button right'
 % don't remember the names? -> run display_regressor_names(beta_loc)
-labelname1 = 'vowelstep1.wav';
-labelname2 = 'vowelstep3.wav';
-labelname3 = 'vowelstep5.wav';
-labelname4 = 'vowelstep7.wav';
-labelname5 = 'sinestep1.wav';
-labelname6 = 'sinestep3.wav';
-labelname7 = 'sinestep5.wav';
-labelname8 = 'sinestep7.wav';
-
+% labelname1 = 'vowelstep1*';
+% labelname2 = 'vowelstep3*';
+% labelname3 = 'vowelstep5*';
+% labelname4 = 'vowelstep7*';
+% labelname5 = 'sinestep1*';
+% labelname6 = 'sinestep3*';
+% labelname7 = 'sinestep5*';
+% labelname8 = 'sinestep7*';
+labelname1 = 'vowelstep*';
+labelname2 = 'sinestep*';
 
 %% Set additional parameters
 % Set additional parameters manually if you want (see decoding.m or
@@ -69,7 +77,7 @@ labelname8 = 'sinestep7.wav';
 % if you like to combine multiple designs in one cfg.
 
 %% Decide whether you want to see the searchlight/ROI/... during decoding
-cfg.plot_selected_voxels = 500; % 0: no plotting, 1: every step, 2: every second step, 100: every hundredth step...
+cfg.plot_selected_voxels = 0; % 0: no plotting, 1: every step, 2: every second step, 100: every hundredth step...
 
 %% Add additional output measures if you like
 % See help decoding_transform_results for possible measures
@@ -85,11 +93,11 @@ cfg.plot_selected_voxels = 500; % 0: no plotting, 1: every step, 2: every second
 %% validation analysis.
 
 % The following function extracts all beta names and corresponding run
-% numbers from the SPM.mat
-regressor_names = design_from_spm(beta_loc);
+% numbers from the AFNI header file
+regressor_names = design_from_afni(beta_loc);
 
 % Extract all information for the cfg.files structure (labels will be [1 -1] )
-cfg = decoding_describe_data(cfg,{labelname1 labelname2 labelname3 labelname4 labelname5 labelname6 labelname7 labelname8},[1 1 1 1 -1 -1 -1 -1],regressor_names,beta_loc);
+cfg = decoding_describe_data(cfg,{labelname1 labelname2},[1 -1],regressor_names,beta_loc);
 
 % This creates the leave-one-run-out cross validation design:
 cfg.design = make_design_cv(cfg); 

@@ -2,14 +2,14 @@
 
 set top_dir = /Volumes/netapp/MyersLab/Dave/Cthulhu/data 
 
-foreach subj (16 17)
+foreach subj (2 3 6 8 9 10 11 12 14 15 16 17 18 19 20 21 22 24 25)
 set anat_dir = $top_dir/cth${subj}/briks
 set epi_dir = $top_dir/cth${subj}/briks	
 
 afni_proc.py -subj_id $subj \
--script proc.cth${subj} \
--out_dir cth${subj}.preproc \
--blocks align tlrc volreg blur mask scale regress \
+-script $top_dir/cth${subj}/proc.cth${subj}_mvpa \
+-out_dir $top_dir/cth${subj}/cth${subj}.preproc_mvpa \
+-blocks align volreg mask scale regress \
 -copy_anat ${anat_dir}/cth${subj}_MP_DO \
 -dsets \
 $epi_dir/cth${subj}_EP1_DO+orig.HEAD \
@@ -24,27 +24,21 @@ $epi_dir/cth${subj}_EP9_DO+orig.HEAD \
 $epi_dir/cth${subj}_EP10_DO+orig.HEAD \
 -volreg_align_to first \
 -volreg_align_e2a \
--volreg_tlrc_warp \
--blur_size 4 \
 -regress_stim_times \
-$top_dir/cth${subj}/catch_timing_subj${subj}.txt \
-$top_dir/cth${subj}/sinestep1_timing_subj${subj}.txt \
-$top_dir/cth${subj}/sinestep3_timing_subj${subj}.txt \
-$top_dir/cth${subj}/sinestep5_timing_subj${subj}.txt \
-$top_dir/cth${subj}/sinestep7_timing_subj${subj}.txt \
-$top_dir/cth${subj}/vowelstep1_timing_subj${subj}.txt \
-$top_dir/cth${subj}/vowelstep3_timing_subj${subj}.txt \
-$top_dir/cth${subj}/vowelstep5_timing_subj${subj}.txt \
-$top_dir/cth${subj}/vowelstep7_timing_subj${subj}.txt \
--regress_stim_labels \
-catch sinestep1 sinestep3 sinestep5 sinestep7 vowelstep1 vowelstep3 vowelstep5 vowelstep7 \
+$top_dir/cth${subj}/IM_timing_subj${subj}.txt \
+-regress_stim_types IM \
 -regress_local_times \
 -regress_basis GAM \
+-regress_opts_3dD -allzero_OK -jobs 3 -GOFORIT 15 \
 -regress_censor_motion 0.3 \
 -regress_censor_outliers 0.1 \
--regress_censor_first_trs 2 \
 -regress_est_blur_epits \
 -regress_est_blur_errts \
 -regress_make_cbucket yes \
--execute
+-execute 
+
+#cd $top_dir/cth${subj}/cth${subj}.preproc_mvpa
+
+#3dLSS -verb -nodata -matrix X.xmat.1D -prefix cth${subj}_LSS -save1D  X.LSS.1D
+
 end

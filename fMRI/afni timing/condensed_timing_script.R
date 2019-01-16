@@ -77,10 +77,10 @@ for (i in unique(df$subject)){
   FA_temp_data <- select(FA_temp_data,"subject","timing","num_block")
   FA_temp_data$arbitrary_key[1:nrow(FA_temp_data)] <- 1:nrow(FA_temp_data)
   FA_temp_data <- spread(FA_temp_data,arbitrary_key,timing)
-  #t <- assign(paste0("falsealarm_timing_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
-  # "4"=temp_data$`4`,"5"=temp_data$`5`,"6"=temp_data$`6`,"7"=temp_data$`7`,"8"=temp_data$`8`,
-  # "9"=temp_data$`9`,"10"=temp_data$`10`,"11"=temp_data$`11`,
-  # "12"=temp_data$`12`,"13"=temp_data$`13`,"14"=temp_data$`14`,"15"=temp_data$`15`,"16"=temp_data$`16`,
-  # "17"=temp_data$`17`,"18"=temp_data$`18`,"19"=temp_data$`19`,"20"=temp_data$`20`))
+  t <- assign(paste0("falsealarm_timing_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
+  "4"=temp_data$`4`,"5"=temp_data$`5`,"6"=temp_data$`6`,"7"=temp_data$`7`,"8"=temp_data$`8`,
+  "9"=temp_data$`9`,"10"=temp_data$`10`,"11"=temp_data$`11`,
+  "12"=temp_data$`12`,"13"=temp_data$`13`,"14"=temp_data$`14`,"15"=temp_data$`15`,"16"=temp_data$`16`,
+  "17"=temp_data$`17`,"18"=temp_data$`18`,"19"=temp_data$`19`,"20"=temp_data$`20`))
   write.table(FA_temp_data,file=paste0("zfalsealarm_timing_subj",i,".txt"),sep=" ",col.names = FALSE, row.names = FALSE)
 }
