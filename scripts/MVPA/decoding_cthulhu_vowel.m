@@ -13,7 +13,7 @@
 clear; 
 dir_base = '/Volumes/netapp/Myerslab/Dave/Cthulhu/data/';
 
-subjects = {'cth1'};
+subjects = {'1'};
 subIndsToProcess = 1:length(subjects);
 
 for s = subIndsToProcess
@@ -29,21 +29,21 @@ cfg.analysis = 'searchlight';
 cfg.searchlight.radius = 3; % use searchlight of radius 3 (by default in voxels), see more details below
 
 % Set the output directory where data will be saved, e.g. 'c:\exp\results\buttonpress'
-cfg.results.dir = [dir_base subjects{s} '/' subjects{s} '.preproc_mvpa/searchlight'];
+cfg.results.dir = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvpa/searchlight/vowelAvsB'];
 
 % Set the full path to the files where your coefficients for each run are stored e.g. 
 % {'/misc/data/mystudy/results1+orig.BRIK','/misc/data/mystudy/results2+orig.BRIK',...}
 %    If all your BRIK files are in the same folder, you can use the
 %    following function to call them all together in one line:
 %    beta_loc = get_filenames_afni('/misc/data/mystudy/results*+orig.BRIK')
-beta_loc = get_filenames_afni([dir_base subjects{s} '/' subjects{s} '.preproc_mvpa/readyforMVPA/*.BRIK']);
+beta_loc = get_filenames_afni([dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvpa/readyforMVPA_oneperrun/*.BRIK']);
 
 % Set the filename of your brain mask (or your ROI masks as cell matrix) 
 % for searchlight or wholebrain e.g. 'c:\exp\glm\model_button\mask.img' OR 
 % for ROI e.g. {'c:\exp\roi\roimaskleft.img', 'c:\exp\roi\roimaskright.img'}
 % You can also use a mask file with multiple masks inside that are
 % separated by different integer values (a "multi-mask")
-cfg.files.mask = [dir_base subjects{s} '/' subjects{s} '.preproc_mvpa/mask_anat.1+orig.BRIK'];
+cfg.files.mask = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvpa/mask_epi_anat.' subjects{s} '+orig.BRIK'];
 
 % Set the label names to the regressor names which you want to use for 
 % decoding, e.g. 'button left' and 'button right'
@@ -56,8 +56,11 @@ cfg.files.mask = [dir_base subjects{s} '/' subjects{s} '.preproc_mvpa/mask_anat.
 % labelname6 = 'sinestep3*';
 % labelname7 = 'sinestep5*';
 % labelname8 = 'sinestep7*';
-labelname1 = 'vowelstep*';
-labelname2 = 'sinestep*';
+labelname1 = 'vowelstep1*';
+labelname2 = 'vowelstep3*';
+labelname3 = 'vowelstep5*';
+labelname4 = 'vowelstep7*';
+
 
 %% Set additional parameters
 % Set additional parameters manually if you want (see decoding.m or
@@ -97,7 +100,7 @@ cfg.plot_selected_voxels = 0; % 0: no plotting, 1: every step, 2: every second s
 regressor_names = design_from_afni(beta_loc);
 
 % Extract all information for the cfg.files structure (labels will be [1 -1] )
-cfg = decoding_describe_data(cfg,{labelname1 labelname2},[1 -1],regressor_names,beta_loc);
+cfg = decoding_describe_data(cfg,{labelname1 labelname2 labelname3 labelname4},[1 1 -1 -1],regressor_names,beta_loc);
 
 % This creates the leave-one-run-out cross validation design:
 cfg.design = make_design_cv(cfg); 
