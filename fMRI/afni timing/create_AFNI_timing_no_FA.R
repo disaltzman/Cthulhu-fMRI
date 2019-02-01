@@ -34,135 +34,113 @@ df <- subset(df,blockname!="P")
 for (i in unique(df$subject)){
   temp_data <- subset(df,fname=="vowelstep1.wav")
   temp_data <- subset(temp_data,subject==i)
-  false_alarms <- subset(temp_data,response!="None")
   temp_data$arbitrary_key[1:15] <- 1:15
-  temp_data <- subset(temp_data,response=="None")
   temp_data <- select(temp_data,"subject","timing","num_block","arbitrary_key")
   temp_data <- spread(temp_data,arbitrary_key,timing)
-        t <- assign(paste0("vowelstep1_timing_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
+        t <- assign(paste0("vowelstep1_timing_include_FA_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
                                                              "4"=temp_data$`4`,"5"=temp_data$`5`,"6"=temp_data$`6`,"7"=temp_data$`7`,"8"=temp_data$`8`,
                                                              "9"=temp_data$`9`,"10"=temp_data$`10`,"11"=temp_data$`11`,
                                                              "12"=temp_data$`12`,"13"=temp_data$`13`,"14"=temp_data$`14`,"15"=temp_data$`15`))
-        write.table(t,file=paste0("vowelstep1_timing_subj",i,".txt"),sep=" ",col.names = FALSE, row.names = FALSE)
+        write.table(t,file=paste0("vowelstep1_timing_include_FA_subj",i,".txt"),sep=" ",col.names = FALSE, row.names = FALSE)
 }
 
 # create timing for vowelstep3.wav
 for (i in unique(df$subject)){
   temp_data <- subset(df,fname=="vowelstep3.wav")
   temp_data <- subset(temp_data,subject==i)
-  false_alarms_temp <- subset(temp_data,response!="None")
-  false_alarms <- bind_rows(false_alarms,false_alarms_temp)
   temp_data$arbitrary_key[1:15] <- 1:15
-  temp_data <- subset(temp_data,response=="None")
   temp_data <- select(temp_data,"subject","timing","num_block","arbitrary_key")
   temp_data <- spread(temp_data,arbitrary_key,timing)
-  t <- assign(paste0("vowelstep3_timing_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
+  t <- assign(paste0("vowelstep3_timing_include_FA_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
                                                             "4"=temp_data$`4`,"5"=temp_data$`5`,"6"=temp_data$`6`,"7"=temp_data$`7`,"8"=temp_data$`8`,
                                                             "9"=temp_data$`9`,"10"=temp_data$`10`,"11"=temp_data$`11`,
                                                             "12"=temp_data$`12`,"13"=temp_data$`13`,"14"=temp_data$`14`,"15"=temp_data$`15`))
-  write.table(t,file=paste0("vowelstep3_timing_subj",i,".txt"),sep=" ",col.names = FALSE, row.names = FALSE)
+  write.table(t,file=paste0("vowelstep3_timing_include_FA_subj",i,".txt"),sep=" ",col.names = FALSE, row.names = FALSE)
 }
 
 # create timing for vowelstep5.wav
 for (i in unique(df$subject)){
   temp_data <- subset(df,fname=="vowelstep5.wav")
   temp_data <- subset(temp_data,subject==i)
-  false_alarms_temp <- subset(temp_data,response!="None")
-  false_alarms <- bind_rows(false_alarms,false_alarms_temp)
   temp_data$arbitrary_key[1:15] <- 1:15
-  temp_data <- subset(temp_data,response=="None")
   temp_data <- select(temp_data,"subject","timing","num_block","arbitrary_key")
   temp_data <- spread(temp_data,arbitrary_key,timing)
-  t <- assign(paste0("vowelstep5_timing_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
+  t <- assign(paste0("vowelstep5_timing_include_FA_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
                                                             "4"=temp_data$`4`,"5"=temp_data$`5`,"6"=temp_data$`6`,"7"=temp_data$`7`,"8"=temp_data$`8`,
                                                             "9"=temp_data$`9`,"10"=temp_data$`10`,"11"=temp_data$`11`,
                                                             "12"=temp_data$`12`,"13"=temp_data$`13`,"14"=temp_data$`14`,"15"=temp_data$`15`))
-  write.table(t,file=paste0("vowelstep5_timing_subj",i,".txt"),sep=" ",col.names = FALSE, row.names = FALSE)
+  write.table(t,file=paste0("vowelstep5_timing_include_FA_subj",i,".txt"),sep=" ",col.names = FALSE, row.names = FALSE)
 }
 
 # create timing for vowelstep7.wav
 for (i in unique(df$subject)){
   temp_data <- subset(df,fname=="vowelstep7.wav")
   temp_data <- subset(temp_data,subject==i)
-  false_alarms_temp <- subset(temp_data,response!="None")
-  false_alarms <- bind_rows(false_alarms,false_alarms_temp) 
   temp_data$arbitrary_key[1:15] <- 1:15
-  temp_data <- subset(temp_data,response=="None")
   temp_data <- select(temp_data,"subject","timing","num_block","arbitrary_key")
   temp_data <- spread(temp_data,arbitrary_key,timing)
-  t <- assign(paste0("vowelstep7_timing_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
+  t <- assign(paste0("vowelstep7_timing_include_FA_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
                                                             "4"=temp_data$`4`,"5"=temp_data$`5`,"6"=temp_data$`6`,"7"=temp_data$`7`,"8"=temp_data$`8`,
                                                             "9"=temp_data$`9`,"10"=temp_data$`10`,"11"=temp_data$`11`,
                                                             "12"=temp_data$`12`,"13"=temp_data$`13`,"14"=temp_data$`14`,"15"=temp_data$`15`))
-  write.table(t,file=paste0("vowelstep7_timing_subj",i,".txt"),sep=" ",col.names = FALSE, row.names = FALSE)
+  write.table(t,file=paste0("vowelstep7_timing_include_FA_subj",i,".txt"),sep=" ",col.names = FALSE, row.names = FALSE)
 }
 
 # create timing for sinestep1.wav
 for (i in unique(df$subject)){
   temp_data <- subset(df,fname=="sinestep1.wav")
   temp_data <- subset(temp_data,subject==i)
-  false_alarms_temp <- subset(temp_data,response!="None")
-  false_alarms <- bind_rows(false_alarms,false_alarms_temp)
   temp_data$arbitrary_key[1:15] <- 1:15
-  temp_data <- subset(temp_data,response=="None")
   temp_data <- select(temp_data,"subject","timing","num_block","arbitrary_key")
   temp_data <- spread(temp_data,arbitrary_key,timing)
-  t <- assign(paste0("sinestep1_timing_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
+  t <- assign(paste0("sinestep1_timing_include_FA_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
                                                             "4"=temp_data$`4`,"5"=temp_data$`5`,"6"=temp_data$`6`,"7"=temp_data$`7`,"8"=temp_data$`8`,
                                                             "9"=temp_data$`9`,"10"=temp_data$`10`,"11"=temp_data$`11`,
                                                             "12"=temp_data$`12`,"13"=temp_data$`13`,"14"=temp_data$`14`,"15"=temp_data$`15`))
-  write.table(t,file=paste0("sinestep1_timing_subj",i,".txt"),sep=" ",col.names = FALSE, row.names = FALSE)
+  write.table(t,file=paste0("sinestep1_timing_include_FA_subj",i,".txt"),sep=" ",col.names = FALSE, row.names = FALSE)
 }
 
 # create timing for sinestep3.wav
 for (i in unique(df$subject)){
   temp_data <- subset(df,fname=="sinestep3.wav")
   temp_data <- subset(temp_data,subject==i)
-  false_alarms_temp <- subset(temp_data,response!="None")
-  false_alarms <- bind_rows(false_alarms,false_alarms_temp)
   temp_data$arbitrary_key[1:15] <- 1:15
-  temp_data <- subset(temp_data,response=="None")
   temp_data <- select(temp_data,"subject","timing","num_block","arbitrary_key")
   temp_data <- spread(temp_data,arbitrary_key,timing)
-  t <- assign(paste0("sinestep3_timing_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
+  t <- assign(paste0("sinestep3_timing_include_FA_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
                                                            "4"=temp_data$`4`,"5"=temp_data$`5`,"6"=temp_data$`6`,"7"=temp_data$`7`,"8"=temp_data$`8`,
                                                            "9"=temp_data$`9`,"10"=temp_data$`10`,"11"=temp_data$`11`,
                                                            "12"=temp_data$`12`,"13"=temp_data$`13`,"14"=temp_data$`14`,"15"=temp_data$`15`))
-  write.table(t,file=paste0("sinestep3_timing_subj",i,".txt"),sep=" ",col.names = FALSE, row.names = FALSE)
+  write.table(t,file=paste0("sinestep3_timing_include_FA_subj",i,".txt"),sep=" ",col.names = FALSE, row.names = FALSE)
 }
 
 # create timing for sinestep5.wav
 for (i in unique(df$subject)){
   temp_data <- subset(df,fname=="sinestep5.wav")
   temp_data <- subset(temp_data,subject==i)
-  false_alarms_temp <- subset(temp_data,response!="None")
-  false_alarms <- bind_rows(false_alarms,false_alarms_temp)
   temp_data$arbitrary_key[1:15] <- 1:15
   temp_data <- subset(temp_data,response=="None")
   temp_data <- select(temp_data,"subject","timing","num_block","arbitrary_key")
   temp_data <- spread(temp_data,arbitrary_key,timing)
-  t <- assign(paste0("sinestep5_timing_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
+  t <- assign(paste0("sinestep5_timing_include_FA_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
                                                            "4"=temp_data$`4`,"5"=temp_data$`5`,"6"=temp_data$`6`,"7"=temp_data$`7`,"8"=temp_data$`8`,
                                                            "9"=temp_data$`9`,"10"=temp_data$`10`,"11"=temp_data$`11`,
                                                            "12"=temp_data$`12`,"13"=temp_data$`13`,"14"=temp_data$`14`,"15"=temp_data$`15`))
-  write.table(t,file=paste0("sinestep5_timing_subj",i,".txt"),sep=" ",col.names = FALSE, row.names = FALSE)
+  write.table(t,file=paste0("sinestep5_timing_include_FA_subj",i,".txt"),sep=" ",col.names = FALSE, row.names = FALSE)
 }
 
 # create timing for sinestep7.wav
 for (i in unique(df$subject)){
   temp_data <- subset(df,fname=="sinestep7.wav")
   temp_data <- subset(temp_data,subject==i)
-  false_alarms_temp <- subset(temp_data,response!="None")
-  false_alarms <- bind_rows(false_alarms,false_alarms_temp)
   temp_data$arbitrary_key[1:15] <- 1:15
-  temp_data <- subset(temp_data,response=="None")
   temp_data <- select(temp_data,"subject","timing","num_block","arbitrary_key")
   temp_data <- spread(temp_data,arbitrary_key,timing)
-  t <- assign(paste0("sinestep7_timing_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
+  t <- assign(paste0("sinestep7_timing_include_FA_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
                                                            "4"=temp_data$`4`,"5"=temp_data$`5`,"6"=temp_data$`6`,"7"=temp_data$`7`,"8"=temp_data$`8`,
                                                            "9"=temp_data$`9`,"10"=temp_data$`10`,"11"=temp_data$`11`,
                                                            "12"=temp_data$`12`,"13"=temp_data$`13`,"14"=temp_data$`14`,"15"=temp_data$`15`))
-  write.table(t,file=paste0("sinestep7_timing_subj",i,".txt"),sep=" ",col.names = FALSE, row.names = FALSE)
+  write.table(t,file=paste0("sinestep7_timing_include_FA_subj",i,".txt"),sep=" ",col.names = FALSE, row.names = FALSE)
 }
 
 # create timing for silent trials
@@ -189,25 +167,25 @@ for (i in unique(df$subject)){
   temp_data <- select(temp_data,"subject","timing","num_block")
   temp_data$arbitrary_key[1:15] <- 1:15 
   temp_data <- spread(temp_data,arbitrary_key,timing)
-  t <- assign(paste0("catch_timing_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
+  t <- assign(paste0("catch_timing_include_FA_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
                                                          "4"=temp_data$`4`,"5"=temp_data$`5`,"6"=temp_data$`6`,"7"=temp_data$`7`,"8"=temp_data$`8`,
                                                          "9"=temp_data$`9`,"10"=temp_data$`10`,"11"=temp_data$`11`,
                                                          "12"=temp_data$`12`,"13"=temp_data$`13`,"14"=temp_data$`14`,"15"=temp_data$`15`))
-  write.table(t,file=paste0("catch_timing_subj",i,".txt"),sep=" ",col.names = FALSE, row.names = FALSE)
+  write.table(t,file=paste0("catch_timing_include_FA_subj",i,".txt"),sep=" ",col.names = FALSE, row.names = FALSE)
 }
 ### 
 
-# create timing for false alarms
-for (i in unique(df$subject)){
-  #temp_data <- filter(df,grepl("catch",fname))
-  temp_data <- subset(false_alarms,subject==i)
-  temp_data <- select(temp_data,"subject","timing","num_block")
-  temp_data$arbitrary_key[1:20] <- 1:20
-  temp_data <- spread(temp_data,arbitrary_key,timing)
-  #t <- assign(paste0("falsealarm_timing_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
-                                                      # "4"=temp_data$`4`,"5"=temp_data$`5`,"6"=temp_data$`6`,"7"=temp_data$`7`,"8"=temp_data$`8`,
-                                                      # "9"=temp_data$`9`,"10"=temp_data$`10`,"11"=temp_data$`11`,
-                                                      # "12"=temp_data$`12`,"13"=temp_data$`13`,"14"=temp_data$`14`,"15"=temp_data$`15`,"16"=temp_data$`16`,
-                                                      # "17"=temp_data$`17`,"18"=temp_data$`18`,"19"=temp_data$`19`,"20"=temp_data$`20`))
-  write.table(temp_data,file=paste0("falsealarm_timing_subj",i,".txt"),sep=" ",col.names = FALSE, row.names = FALSE)
-}
+# # create timing for false alarms
+# for (i in unique(df$subject)){
+#   #temp_data <- filter(df,grepl("catch",fname))
+#   temp_data <- subset(false_alarms,subject==i)
+#   temp_data <- select(temp_data,"subject","timing","num_block")
+#   temp_data$arbitrary_key[1:20] <- 1:20
+#   temp_data <- spread(temp_data,arbitrary_key,timing)
+#   #t <- assign(paste0("falsealarm_timing_subj",i),data.frame("1"=temp_data$`1`,"2"=temp_data$`2`,"3"=temp_data$`3`,
+#                                                       # "4"=temp_data$`4`,"5"=temp_data$`5`,"6"=temp_data$`6`,"7"=temp_data$`7`,"8"=temp_data$`8`,
+#                                                       # "9"=temp_data$`9`,"10"=temp_data$`10`,"11"=temp_data$`11`,
+#                                                       # "12"=temp_data$`12`,"13"=temp_data$`13`,"14"=temp_data$`14`,"15"=temp_data$`15`,"16"=temp_data$`16`,
+#                                                       # "17"=temp_data$`17`,"18"=temp_data$`18`,"19"=temp_data$`19`,"20"=temp_data$`20`))
+#   write.table(temp_data,file=paste0("falsealarm_timing_subj",i,".txt"),sep=" ",col.names = FALSE, row.names = FALSE)
+# }
