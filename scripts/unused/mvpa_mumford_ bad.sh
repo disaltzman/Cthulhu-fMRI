@@ -2,30 +2,30 @@
 
 set top_dir = /Volumes/netapp/MyersLab/Dave/Cthulhu/data 
 
-foreach subj (16)
+foreach subj (3)
 	set anat_dir = $top_dir/cth${subj}/briks
 	set epi_dir = $top_dir/cth${subj}/briks	
 
 	# run proc.py to do minimal preprocessing of data
-	# afni_proc.py -subj_id $subj \
-	# -script $top_dir/cth${subj}/proc.cth${subj}_mvpa \
-	# -out_dir $top_dir/cth${subj}/cth${subj}.preproc_mvpa \
-	# -blocks align volreg mask scale \
-	# -copy_anat ${anat_dir}/cth${subj}_MP_DO \
-	# -dsets \
-	# $epi_dir/cth${subj}_EP1_DO+orig.HEAD \
-	# $epi_dir/cth${subj}_EP2_DO+orig.HEAD \
-	# $epi_dir/cth${subj}_EP3_DO+orig.HEAD \
-	# $epi_dir/cth${subj}_EP4_DO+orig.HEAD \
-	# $epi_dir/cth${subj}_EP5_DO+orig.HEAD \
-	# $epi_dir/cth${subj}_EP6_DO+orig.HEAD \
-	# $epi_dir/cth${subj}_EP7_DO+orig.HEAD \
-	# $epi_dir/cth${subj}_EP8_DO+orig.HEAD \
-	# $epi_dir/cth${subj}_EP9_DO+orig.HEAD \
-	# $epi_dir/cth${subj}_EP10_DO+orig.HEAD \
-	# -volreg_align_to first \
-	# -volreg_align_e2a \
-	# -execute 
+	afni_proc.py -subj_id $subj \
+	-script $top_dir/cth${subj}/proc.cth${subj}_mvpa \
+	-out_dir $top_dir/cth${subj}/cth${subj}.preproc_mvpa \
+	-blocks align volreg mask scale \
+	-copy_anat ${anat_dir}/cth${subj}_MP_DO \
+	-dsets \
+	$epi_dir/cth${subj}_EP1_DO+orig.HEAD \
+	$epi_dir/cth${subj}_EP2_DO+orig.HEAD \
+	$epi_dir/cth${subj}_EP3_DO+orig.HEAD \
+	$epi_dir/cth${subj}_EP4_DO+orig.HEAD \
+	$epi_dir/cth${subj}_EP5_DO+orig.HEAD \
+	$epi_dir/cth${subj}_EP6_DO+orig.HEAD \
+	$epi_dir/cth${subj}_EP7_DO+orig.HEAD \
+	$epi_dir/cth${subj}_EP8_DO+orig.HEAD \
+	$epi_dir/cth${subj}_EP9_DO+orig.HEAD \
+	$epi_dir/cth${subj}_EP10_DO+orig.HEAD \
+	-volreg_align_to first \
+	-volreg_align_e2a \
+	-execute 
 
 	# concatenate runs into one file for 3dLSS
 	cd $top_dir/cth${subj}/cth${subj}.preproc_MVPA

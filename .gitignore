@@ -8,3 +8,5 @@ fMRI/.DS_Store
 *.BRIK
 *.HEAD
 *.1D
+
+scripts/preprocessing/Decon\.REML_cmd

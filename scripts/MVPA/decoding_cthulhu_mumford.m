@@ -11,9 +11,9 @@
 %addpath('$ADD FULL PATH TO TOOLBOX AS STRING OR MAKE THIS LINE A COMMENT IF IT IS ALREADY$')
 
 clear; 
-dir_base = '/Volumes/netapp/Myerslab/Dave/Cthulhu/data/';
+dir_base = '/Volumes/netapp/Research/Myerslab/Dave/Cthulhu/data/';
 
-subjects = {'16'};
+subjects = {'2'};
 subIndsToProcess = 1:length(subjects);
 
 for s = subIndsToProcess
@@ -34,7 +34,6 @@ cfg.decoding.method = 'classification';
 cfg.decoding.train.classification.model_parameters = '-s 1 -c 1 -q';
 cfg.scale.method = 'z';
 cfg.scale.estimation = 'all';
-cfg.design.unbalanced_data = 'ok'
 % cfg.decoding.train.classification_kernel.model_parameters = '-s 0 -t 4 -c 0.001 -b 0 -q';
 
 % Set the output directory where data will be saved, e.g. 'c:\exp\results\buttonpress'
@@ -102,14 +101,14 @@ cfg.plot_selected_voxels = 0; % 0: no plotting, 1: every step, 2: every second s
 
 % The following function extracts all beta names and corresponding run
 % numbers from the AFNI header file
-regressor_names = design_from_afni(beta_loc);
+regressor_names = design_from_afni_custom(beta_loc);
 
 % Extract all information for the cfg.files structure (labels will be [1 -1] )
 cfg = decoding_describe_data(cfg,{labelname1 labelname2},[1 -1],regressor_names,beta_loc);
 
 % This creates the leave-one-run-out cross validation design:
 cfg.design = make_design_cv(cfg); 
-
+cfg.design.unbalanced_data = 'ok'
 % Run decoding
 results = decoding(cfg);
 
