@@ -11,12 +11,12 @@
 %addpath('$ADD FULL PATH TO TOOLBOX AS STRING OR MAKE THIS LINE A COMMENT IF IT IS ALREADY$')
 
 clear; 
-dir_base = '/Volumes/netapp/Research/Myerslab/Dave/Cthulhu/data/';
+dir_base = '/Volumes/netapp/Myerslab/Dave/Cthulhu/data/';
 
-subjects = {'2'};
+subjects = {'22','24','25'};
 subIndsToProcess = 1:length(subjects);
 
-for s = subIndsToProcess
+for s = 1:subIndsToProcess
 
 % Set defaults
 cfg = decoding_defaults;
@@ -51,7 +51,7 @@ beta_loc = get_filenames_afni([dir_base 'cth' subjects{s} '/' 'cth' subjects{s} 
 % for ROI e.g. {'c:\exp\roi\roimaskleft.img', 'c:\exp\roi\roimaskright.img'}
 % You can also use a mask file with multiple masks inside that are
 % separated by different integer values (a "multi-mask")
-cfg.files.mask = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvpa/mask_epi_anat.' subjects{s} '+orig.BRIK'];
+cfg.files.mask = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvpa/mask_epi_anat.' subjects{s} '+orig.BRIK.gz'];
 
 % Set the label names to the regressor names which you want to use for 
 % decoding, e.g. 'button left' and 'button right'
@@ -108,7 +108,7 @@ cfg = decoding_describe_data(cfg,{labelname1 labelname2},[1 -1],regressor_names,
 
 % This creates the leave-one-run-out cross validation design:
 cfg.design = make_design_cv(cfg); 
-cfg.design.unbalanced_data = 'ok'
+cfg.design.unbalanced_data = 'ok';
 % Run decoding
 results = decoding(cfg);
 

@@ -1,8 +1,8 @@
 #!/bin/tcsh -f
 
-set top_dir = /Volumes/netapp/MyersLab/Dave/Cthulhu/data 
+set top_dir = /Volumes/netapp/Research/MyersLab/Dave/Cthulhu/data 
 
-foreach subj (1 2 3 6 8 9 10 11 12 14 16 17 18 20 21 22 24 25)
+foreach subj (15)
 	cd $top_dir/cth${subj}
 	mkdir mvpa.timing
 	foreach stimulus (catch sinestep1 sinestep3 sinestep5 sinestep7 vowelstep1 vowelstep3 vowelstep5 vowelstep7 zfalsealarm)

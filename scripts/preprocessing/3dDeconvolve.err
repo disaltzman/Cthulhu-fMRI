@@ -1,17 +1,16 @@
-*+ WARNING: '-stim_times 10' didn't read any good times from file '/Volumes/netapp/MyersLab/Dave/Cthulhu/data/cth2/mvpa.timing/zfalsealarm_timing_subj2_run10.txt'
+*+ WARNING: '-stim_times 10' didn't read any good times from file '/Volumes/netapp/Research/MyersLab/Dave/Cthulhu/data/cth25/mvpa.timing/zfalsealarm_timing_subj25_run10.txt'
 *+ WARNING: Input polort=1; Longest run=322.0 s; Recommended minimum polort=3
 *+ WARNING: -stim_times 10 has all times equal to '*' ?!?!
-*+ WARNING: !! '-stim_times 10' file '/Volumes/netapp/MyersLab/Dave/Cthulhu/data/cth2/mvpa.timing/zfalsealarm_timing_subj2_run10.txt' has no good stimulus time values
+*+ WARNING: !! '-stim_times 10' file '/Volumes/netapp/Research/MyersLab/Dave/Cthulhu/data/cth25/mvpa.timing/zfalsealarm_timing_subj25_run10.txt' has no good stimulus time values
 *+ WARNING: -------------------------------------------------
 *+ WARNING: Problems with the X matrix columns, listed below:
-*+ WARNING: !! * Columns 23 [vowelstep7#13] and 24 [vowelstep7#14] are (nearly?) collinear!
 *+ WARNING:    * Column 25 [zfalsealarm#0] is all zeros
 *+ WARNING: -------------------------------------------------
 *+ WARNING: !! in Signal+Baseline matrix:
- * Largest singular value=1.80679
- * 1 singular value is less than cutoff=1.80679e-07
+ * Largest singular value=1.76481
+ * 1 singular value is less than cutoff=1.76481e-07
  * Implies strong collinearity in the matrix columns! 
 *+ WARNING: !! in Signal-only matrix:
- * Largest singular value=1.56132
- * 1 singular value is less than cutoff=1.56132e-07
+ * Largest singular value=1.47768
+ * 1 singular value is less than cutoff=1.47768e-07
  * Implies strong collinearity in the matrix columns! 

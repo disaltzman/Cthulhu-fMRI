@@ -1,9 +1,9 @@
 #!/bin/tcsh -f
 
-set top_dir = /Volumes/netapp/MyersLab/Dave/Cthulhu/data 
+set top_dir = /Volumes/netapp/Research/MyersLab/Dave/Cthulhu/data 
 
 # main loop - over subjects
-foreach subj (2)
+foreach subj (16 17 18 20 21 22 24 25)
 	set anat_dir = $top_dir/cth${subj}/briks
 	set epi_dir = $top_dir/cth${subj}/briks	
 
@@ -28,13 +28,13 @@ foreach subj (2)
 	-volreg_align_e2a \
 	-execute 
 
-	# create directory to store betas
+	# # create directory to store betas
 	mkdir $top_dir/cth${subj}/cth${subj}.preproc_mvpa/readyforMVPA_Mumford
 
-	# loop over runs
+	# # loop over runs
 	foreach runNum (01 02 03 04 05 06 07 08 09 10)
 
-		# # get matrices for each predictor for each run
+		# get matrices for each predictor for each run
 		3dDeconvolve -input $top_dir/cth${subj}/cth${subj}.preproc_mvpa/pb02.${subj}.r${runNum}.*.BRIK \
 		-local_times \
 		-num_stimts 10 \
@@ -168,7 +168,7 @@ foreach subj (2)
 		-x1D $top_dir/cth${subj}/cth${subj}.preproc_mvpa/vowelstep5.r${runNum}.mat.1D \
 		-x1D_stop
 
-		3dDeconvolve -input $top_dir/cth${subj}/cth${subj}.preproc_mvpa/pb02.${subj}r${runNum}.*.BRIK \
+		3dDeconvolve -input $top_dir/cth${subj}/cth${subj}.preproc_mvpa/pb02.${subj}.r${runNum}.*.BRIK \
 		-local_times \
 		-num_stimts 10 \
 		-stim_times 1 $top_dir/cth${subj}/mvpa.timing/catch_timing_subj${subj}_run${runNum}.txt 'GAM' -stim_label 1 catch \
@@ -180,14 +180,14 @@ foreach subj (2)
 		-stim_times 7 $top_dir/cth${subj}/mvpa.timing/vowelstep3_timing_subj${subj}_run${runNum}.txt 'GAM' -stim_label 7 vowelstep3 \
 		-stim_times 8 $top_dir/cth${subj}/mvpa.timing/vowelstep5_timing_subj${subj}_run${runNum}.txt 'GAM' -stim_label 8 vowelstep5 \
 		-stim_times_IM 9 $top_dir/cth${subj}/mvpa.timing/vowelstep7_timing_subj${subj}_run${runNum}.txt 'GAM' -stim_label 9 vowelstep7 \
-		-stim_times 10 $top_dir/cth${subj}/mvpa.timing/zfalsealarm_tirng_subj${subj}_run${runNum}.txt 'GAM' -stim_label 10 zfalsealarm \
+		-stim_times 10 $top_dir/cth${subj}/mvpa.timing/zfalsealarm_timing_subj${subj}_run${runNum}.txt 'GAM' -stim_label 10 zfalsealarm \
 		-allzero_OK \
 		-jobs 3 \
 		-GOFORIT 20 \
 		-x1D $top_dir/cth${subj}/cth${subj}.preproc_mvpa/vowelstep7.r${runNum}.mat.1D \
 		-x1D_stop
 
-		# # run 3dLSS by run to get betas for each event type
+		# run 3dLSS by run to get betas for each event type
  		foreach event (sinestep1 sinestep3 sinestep5 sinestep7 vowelstep1 vowelstep3 vowelstep5 vowelstep7)
  			3dLSS -verb -matrix $top_dir/cth${subj}/cth${subj}.preproc_mvpa/${event}.r${runNum}.mat.1D \
  			-input $top_dir/cth${subj}/cth${subj}.preproc_mvpa/pb02.${subj}.r${runNum}.*.BRIK \
