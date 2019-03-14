@@ -7,7 +7,7 @@ Download DICOM files from BIRC server
 
 ### Step 2
 
-Rename files, create _MP_ and _BRIKS_ folders, and run `cthulhu_pre_preprocessing.sh`
+Rename files, create _MP_ and _briks_ folders, and run `cthulhu_pre_preprocessing.sh`
 
 ### Step 3
 

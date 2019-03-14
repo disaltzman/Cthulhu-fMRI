@@ -1,14 +1,14 @@
 #!/bin/tcsh -f
 
-set top_dir = /Volumes/netapp-1/Research/MyersLab/Dave/Cthulhu/data 
+set top_dir = /Volumes/netapp/MyersLab/Dave/Cthulhu/data 
 
-foreach subj (1 2 3 6 8 9 10 11 12 14 15 16 17 18 20 21 22 24 25)
+foreach subj (34)
 set anat_dir = $top_dir/cth${subj}/briks
 set epi_dir = $top_dir/cth${subj}/briks	
 
 afni_proc.py -subj_id $subj \
 -script proc.cth${subj} \
--out_dir cth${subj}.preproc \
+-out_dir $top_dir/cth${subj}/cth${subj}.preproc \
 -blocks align tlrc volreg blur mask scale regress \
 -copy_anat ${anat_dir}/cth${subj}_MP_DO \
 -dsets \

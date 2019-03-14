@@ -13,10 +13,10 @@
 clear; 
 dir_base = '/Volumes/netapp/Myerslab/Dave/Cthulhu/data/';
 
-subjects = {'22','24','25'};
+subjects = {'25','26','27','28','30','31','32'};
 subIndsToProcess = 1:length(subjects);
 
-for s = 1:subIndsToProcess
+for s = subIndsToProcess
 
 % Set defaults
 cfg = decoding_defaults;
@@ -37,7 +37,7 @@ cfg.scale.estimation = 'all';
 % cfg.decoding.train.classification_kernel.model_parameters = '-s 0 -t 4 -c 0.001 -b 0 -q';
 
 % Set the output directory where data will be saved, e.g. 'c:\exp\results\buttonpress'
-cfg.results.dir = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvpa/searchlight/test'];
+cfg.results.dir = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvpa/searchlight/AvsB_vowel'];
 
 % Set the full path to the files where your coefficients for each run are stored e.g. 
 % {'/misc/data/mystudy/results1+orig.BRIK','/misc/data/mystudy/results2+orig.BRIK',...}
@@ -51,21 +51,17 @@ beta_loc = get_filenames_afni([dir_base 'cth' subjects{s} '/' 'cth' subjects{s} 
 % for ROI e.g. {'c:\exp\roi\roimaskleft.img', 'c:\exp\roi\roimaskright.img'}
 % You can also use a mask file with multiple masks inside that are
 % separated by different integer values (a "multi-mask")
-cfg.files.mask = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvpa/mask_epi_anat.' subjects{s} '+orig.BRIK.gz'];
+cfg.files.mask = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvpa/mask_epi_anat.' subjects{s} '+orig.BRIK'];
 
 % Set the label names to the regressor names which you want to use for 
 % decoding, e.g. 'button left' and 'button right'
 % don't remember the names? -> run display_regressor_names(beta_loc)
-% labelname1 = 'vowelstep1*';
-% labelname2 = 'vowelstep3*';
-% labelname3 = 'vowelstep5*';
-% labelname4 = 'vowelstep7*';
-% labelname5 = 'sinestep1*';
-% labelname6 = 'sinestep3*';
-% labelname7 = 'sinestep5*';
-% labelname8 = 'sinestep7*';
-labelname1 = 'vowelstep*';
-labelname2 = 'sinestep*';
+
+labelname1 = 'vowelstep1*';
+labelname2 = 'vowelstep3*';
+labelname3 = 'vowelstep5*';
+labelname4 = 'vowelstep7*';
+
 
 %% Set additional parameters
 % Set additional parameters manually if you want (see decoding.m or
@@ -104,7 +100,7 @@ cfg.plot_selected_voxels = 0; % 0: no plotting, 1: every step, 2: every second s
 regressor_names = design_from_afni_custom(beta_loc);
 
 % Extract all information for the cfg.files structure (labels will be [1 -1] )
-cfg = decoding_describe_data(cfg,{labelname1 labelname2},[1 -1],regressor_names,beta_loc);
+cfg = decoding_describe_data(cfg,{labelname1 labelname2 labelname3 labelname4},[1 1 -1 -1],regressor_names,beta_loc);
 
 % This creates the leave-one-run-out cross validation design:
 cfg.design = make_design_cv(cfg); 

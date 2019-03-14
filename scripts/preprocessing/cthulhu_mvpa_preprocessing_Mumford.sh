@@ -1,9 +1,9 @@
 #!/bin/tcsh -f
 
-set top_dir = /Volumes/netapp/Research/MyersLab/Dave/Cthulhu/data 
+set top_dir = /Volumes/netapp/MyersLab/Dave/Cthulhu/data 
 
 # main loop - over subjects
-foreach subj (16 17 18 20 21 22 24 25)
+foreach subj (34)
 	set anat_dir = $top_dir/cth${subj}/briks
 	set epi_dir = $top_dir/cth${subj}/briks	
 

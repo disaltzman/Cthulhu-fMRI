@@ -12,6 +12,7 @@ library(lme4)
 library(tidyverse)
 library(scales)
 library(gdata)
+library(quickpsy)
 source("https://raw.githubusercontent.com/janhove/janhove.github.io/master/RCode/sortLvls.R")
 theme_set(theme_bw())
 
@@ -32,6 +33,7 @@ for (i in file_names) {
 df$correct_response <- as.numeric(df$correct_response)
 df$trial <- as.numeric(df$trial)
 df$rt <- as.numeric(df$rt)
+# chop off session indicator numbers to get base subject number
 df$subject2 <- ifelse(nchar(df$subject)==3,substr(df$subject,1,1),substr(df$subject,1,2)) 
 
 
@@ -48,7 +50,12 @@ session4 <- subset(df,session == 4)
 #### SESSION 1 ####
 
 # split by block for session1
- 
+pretest1 <- subset(session1,block == "pretest_discrimination")
+posttest1 <- subset(session1,block == "posttest_discrimination")
+training1.1 <- subset(session1,block == "training1")
+training1.2 <- subset(session1,block == "training2")
+training1.3 <- subset(session1,block == "training3")
+continuum1 <- subset(session1,block == "continuum")
 
 # create pretest performance figure
 pretest1$fname2 <- ifelse(pretest1$fname=="i-y-u_step1-step1.wav","1-1",NA)
@@ -383,6 +390,11 @@ by_subject_performance$subject2 <- ifelse(nchar(by_subject_performance$subject)=
 # by subject performance for each discrimination task
 ggplot(by_subject_performance,aes(x=subject2,y=mean)) + geom_bar(stat="identity",position="dodge",aes(fill=source))
 
+
+
+
+
+
 #### FOR TALK SHOP 11/29 ####
 
 # create training performance figure with training sublock on the X axis and session as grouping variable
@@ -400,7 +412,7 @@ training_figure_data_vowel <- subset(training_figure_data,session!="S3")
 # version with error bars
 stats <- summarySE(data=training_figure_data_vowel, measurevar="correct_response",groupvars=c("block","session"))
 
-ggplot(stats,aes(x=block,y=correct_response,fill=session)) + 
+test <- ggplot(stats,aes(x=block,y=correct_response,fill=session)) + 
   geom_bar(stat="identity",position="dodge",aes(fill=session)) +
   geom_errorbar(aes(ymin=correct_response-se,ymax=correct_response+se),position=position_dodge(width=0.9)) + 
   scale_y_continuous('Percent accuracy',breaks=c(0.5,0.75,1),labels=c(50,75,100)) +
@@ -408,7 +420,15 @@ ggplot(stats,aes(x=block,y=correct_response,fill=session)) +
   scale_fill_brewer('Session #',palette = "Purples") +
   coord_cartesian(ylim=c(0.4,1)) +
   theme_dark() +
-  theme(text = element_text(size=20))
+  theme(text = element_text(size=20)) +
+  theme(
+    panel.background = element_rect(fill = "transparent") # bg of the panel
+    , plot.background = element_rect(fill = "transparent", color = NA) # bg of the plot
+    , panel.grid.major = element_blank() # get rid of major grid
+    , panel.grid.minor = element_blank() # get rid of minor grid
+    , legend.background = element_rect(fill = "transparent") # get rid of legend bg
+  )
+ggsave(test, filename = "/Users/Dave/Desktop/test.png",  bg = "transparent")
 
 # version using dataset without summarizing
 ggplot(training_figure_data_vowel,aes(x=block,y=correct_response)) + 
@@ -547,9 +567,9 @@ colnames(dprime_cllpsd)[2] <- "dprime"
 ggplot(dprime,aes(x=Session,y=dprime)) + 
   geom_bar(data=dprime_cllpsd,stat="identity",position="dodge",aes(fill=Session),alpha=0.7) +
   geom_point(aes(color=Session),position = position_dodge(width=0.75)) +
-  scale_y_continuous('d Prime',breaks=c(-.1,0,0.5,1,1.5,2,2.50,3),labels=c(-.1,0,0.5,1,1.5,2,2.50,3)) +
+  scale_y_continuous('d Prime',breaks=c(0,.25,.5,.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75),labels=c(0,.25,.5,.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75)) +
   scale_x_discrete('Session',labels=c('1','2','3')) +
-  scale_fill_brewer('Session #',palette = "Purples") +
+  scale_fill_brewer('Session #',palette="Purples") +
   scale_color_brewer('Session #',palette="Purples") +
   theme_dark() +
   theme(text = element_text(size=20))
@@ -738,7 +758,7 @@ ggplot(dprime_id_session3,aes(x=stimulus,y=dprime)) +
   theme(text = element_text(size=20))
 
 
-### PHONETIC CATEGORIZATION
+#### PHONETIC CATEGORIZATION ####
 
 # subset continuum data
 continuum <- subset(df,df$block=="continuum")
@@ -755,7 +775,9 @@ continuum$response <- tolower(continuum$response)
 continuum$cb <- ifelse(continuum$subject2==3|continuum$subject2==8|
                        continuum$subject2==11|continuum$subject2==12|
                        continuum$subject2==15|continuum$subject2==16|
-                       continuum$subject2==20|continuum$subject2==24,"cb1","cb2")
+                       continuum$subject2==20|continuum$subject2==24|
+                       continuum$subject2==27|continuum$subject2==28|
+                       continuum$subject2==31|continuum$subject2==32,"cb1","cb2")
 continuumCB1 <- subset(continuum,continuum$cb=="cb1")
 continuumCB2 <- subset(continuum,continuum$cb=="cb2")
 continuumCB1$resp1 <- ifelse(continuumCB1$response=="a",1,0)
@@ -770,8 +792,8 @@ stats <- summarySE(continuum, measurevar="resp1",groupvars = c("step","session")
 stats <- summarySE(continuum, measurevar="resp1",groupvars = c("step","session","subject2"))
 
 ggplot(stats, aes(x=as.numeric(step), y=resp1,color=factor(session))) +
-  geom_point(stat='summary', fun.y='mean', size=3) +
-  geom_line(stat='summary', fun.y='mean', size=1.25) +
+  geom_point(stat='summary', fun.y='mean', size=3,alpha=0.7) +
+  geom_line(stat='summary', fun.y='mean', size=1.25, alpha=0.7) +
   geom_errorbar(aes(ymin=resp1-se,ymax=resp1+se),width=.5) +
   facet_wrap(~subject2) +
   scale_x_continuous('/i/ to /y/ continuum step', breaks=c(1:7)) +
@@ -796,7 +818,21 @@ ggplot(stats_vowel, aes(x=as.numeric(step),y=resp1)) +
   theme_dark() +
   theme(text = element_text(size=20))
 
-### SINE SESSIONS ###
+# fit curves using quickpsy
+continuum$session <- as.numeric(continuum$session)
+continuum$subject2 <- as.numeric(continuum$subject2)
+continuum$step <- as.numeric(continuum$step)
+session.subject.curves <- quickpsy(continuum, step, resp1, 
+                        grouping = .(subject2,session), 
+                        fun = logistic_fun,
+                        lapses = TRUE, 
+                        guess = TRUE,
+                        bootstrap = "nonparametric", 
+                        optimization = "optim",
+                        B = 100) 
+
+
+#### SINE SESSIONS ####
 
 # create training performance figure with training sublock on the X axis and session as grouping variable
 
