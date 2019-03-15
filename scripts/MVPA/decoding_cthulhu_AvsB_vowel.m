@@ -13,7 +13,7 @@
 clear; 
 dir_base = '/Volumes/netapp/Myerslab/Dave/Cthulhu/data/';
 
-subjects = {'25','26','27','28','30','31','32'};
+subjects = {'34'};
 subIndsToProcess = 1:length(subjects);
 
 for s = subIndsToProcess
