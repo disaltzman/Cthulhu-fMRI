@@ -29,23 +29,19 @@ for (i in file_names) {
   df <- rbind(df, data)
 }
 
-# various housekeeping things
-df$correct_response <- as.numeric(df$correct_response)
-df$trial <- as.numeric(df$trial)
-df$rt <- as.numeric(df$rt)
-# chop off session indicator numbers to get base subject number
-df$subject2 <- ifelse(nchar(df$subject)==3,substr(df$subject,1,1),substr(df$subject,1,2)) 
-
-
-#### FOR VOWEL SESSIONS ####
-
 # split by session 
 session1 <- subset(df,session == 1)
 session2 <- subset(df,session == 2)
 session3 <- subset(df,session == 3)
 session4 <- subset(df,session == 4)
+sine <- subset(df,session == "S3")
 
-
+# various housekeeping things
+df$correct_response <- as.numeric(df$correct_response)
+df$trial <- as.numeric(df$trial)
+df$rt <- as.numeric(df$rt)
+# chop off session indicator numbers to get base subject number
+df$subject2 <- ifelse(nchar(df$subject)==3,substr(df$subject,1,1),substr(df$subject,1,2))
 
 #### SESSION 1 ####
 
@@ -819,17 +815,19 @@ ggplot(stats_vowel, aes(x=as.numeric(step),y=resp1)) +
   theme(text = element_text(size=20))
 
 # fit curves using quickpsy
-continuum$session <- as.numeric(continuum$session)
-continuum$subject2 <- as.numeric(continuum$subject2)
-continuum$step <- as.numeric(continuum$step)
-session.subject.curves <- quickpsy(continuum, step, resp1, 
-                        grouping = .(subject2,session), 
+readyforcurves <- subset(continuum,subject2!=10)
+readyforcurves$session <- as.numeric(readyforcurves$session)
+readyforcurves$subject2 <- as.numeric(readyforcurves$subject2)
+readyforcurves$step <- as.numeric(readyforcurves$step)
+readyforcurves <- na.omit(readyforcurves)
+session.subject.curves <- quickpsy(readyforcurves, step, resp1, 
+                        grouping = .(subject2), 
                         fun = logistic_fun,
-                        lapses = TRUE, 
-                        guess = TRUE,
+                        lapses = FALSE, 
+                        guess = FALSE,
                         bootstrap = "nonparametric", 
                         optimization = "optim",
-                        B = 100) 
+                        B = 1000) 
 
 
 #### SINE SESSIONS ####
@@ -1160,3 +1158,115 @@ ggplot(stats_sine, aes(x=as.numeric(step),y=resp1)) +
   coord_cartesian(ylim=c(0,1)) + 
   theme_dark() +
   theme(text = element_text(size=20))
+
+#### MIXED EFFECTS MODELS ####
+
+# split data into vowel and sine
+vowel.mod.data <- subset(df,session!="S3")
+sine.mod.data <- subset(df,session=="S3")
+
+# VOWEL
+
+# create variable to treat each pre and post-test from each session as a unique session
+vowel.mod.data <- subset(vowel.mod.data,grepl("discrimination",block)==TRUE)
+vowel.mod.data$block.session <- ifelse(vowel.mod.data$block=="pretest_discrimination" & vowel.mod.data$session==1,1,NA)
+vowel.mod.data$block.session <- ifelse(vowel.mod.data$block=="posttest_discrimination" & vowel.mod.data$session==1,2,vowel.mod.data$block.session)
+vowel.mod.data$block.session <- ifelse(vowel.mod.data$block=="pretest_discrimination" & vowel.mod.data$session==2,3,vowel.mod.data$block.session)
+vowel.mod.data$block.session <- ifelse(vowel.mod.data$block=="posttest_discrimination" & vowel.mod.data$session==2,4,vowel.mod.data$block.session)
+vowel.mod.data$block.session <- ifelse(vowel.mod.data$block=="pretest_discrimination" & vowel.mod.data$session==3,5,vowel.mod.data$block.session)
+vowel.mod.data$block.session <- ifelse(vowel.mod.data$block=="posttest_discrimination" & vowel.mod.data$session==3,6,vowel.mod.data$block.session)
+
+## create variable to combine forwards/backwards discrimination steps
+vowel.mod.data$fname2 <- ifelse(vowel.mod.data$fname=="i-y-u_step1-step1.wav","1-1",
+                                        ifelse(vowel.mod.data$fname=="i-y-u_step2-step2.wav","2-2",
+                                               ifelse(vowel.mod.data$fname=="i-y-u_step3-step3.wav","3-3",
+                                                      ifelse(vowel.mod.data$fname=="i-y-u_step4-step4.wav","4-4",
+                                                             ifelse(vowel.mod.data$fname=="i-y-u_step5-step5.wav","5-5",
+                                                                    ifelse(vowel.mod.data$fname=="i-y-u_step6-step6.wav","6-6",
+                                                                           ifelse(vowel.mod.data$fname=="i-y-u_step7-step7.wav","7-7",
+                                                                                  ifelse(vowel.mod.data$fname=="i-y-u_step_1-step_3.wav","1-3",
+                                                                                         ifelse(vowel.mod.data$fname=="i-y-u_step_2-step_4.wav","2-4",
+                                                                                                ifelse(vowel.mod.data$fname=="i-y-u_step_3-step_5.wav","3-5",
+                                                                                                       ifelse(vowel.mod.data$fname=="i-y-u_step_4-step_6.wav","4-6",
+                                                                                                              ifelse(vowel.mod.data$fname=="i-y-u_step_5-step_7.wav","5-7",
+                                                                                                                     ifelse(vowel.mod.data$fname=="i-y-u_step_3-step_1.wav","1-3",
+                                                                                                                            ifelse(vowel.mod.data$fname=="i-y-u_step_4-step_2.wav","2-4",
+                                                                                                                                   ifelse(vowel.mod.data$fname=="i-y-u_step_5-step_3.wav","3-5",
+                                                                                                                                          ifelse(vowel.mod.data$fname=="i-y-u_step_6-step_4.wav","4-6",
+                                                                                                                                                 ifelse(vowel.mod.data$fname=="i-y-u_step_7-step_5.wav","5-7",NA)))))))))))))))))
+
+
+vowel.mod.data$discrim.condition <- ifelse(vowel.mod.data$fname2=="1-1","same",
+                                           ifelse(vowel.mod.data$fname2=="2-2","same",
+                                                  ifelse(vowel.mod.data$fname2=="3-3","same",
+                                                         ifelse(vowel.mod.data$fname2=="4-4","same",
+                                                                ifelse(vowel.mod.data$fname2=="5-5","same",
+                                                                       ifelse(vowel.mod.data$fname2=="6-6","same",
+                                                                              ifelse(vowel.mod.data$fname2=="7-7","same",
+                                                                                     ifelse(vowel.mod.data$fname2=="1-3","different",
+                                                                                            ifelse(vowel.mod.data$fname2=="2-4","different",
+                                                                                                   ifelse(vowel.mod.data$fname2=="3-5","different",
+                                                                                                          ifelse(vowel.mod.data$fname2=="4-6","different",
+                                                                                                                 ifelse(vowel.mod.data$fname2=="5-7","different",NA))))))))))))
+
+## GLMM for % accuracy in discrimation ##
+
+# prep data
+vowel.mod.data <- subset(vowel.mod.data,discrim.condition=="different")
+vowel.mod.data$block.session <- as.factor(vowel.mod.data$block.session)
+contrasts(vowel.mod.data$block.session) = contr.sum(6)
+
+# run models
+model1 <- glmer(correct_response ~ block.session + (1|subject2),
+                  data=vowel.mod.data, family='binomial',
+                  control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 1500000)))
+summary(model1)
+
+# SINE
+# create variable to treat each pre and post-test from each session as a unique session
+sine.mod.data <- subset(sine.mod.data,grepl("discrimination",block)==TRUE)
+
+## create variable to combine forwards/backwards discrimination steps
+sine.mod.data$fname2 <- ifelse(sine.mod.data$fname=="iyu_step_1-step_1.wav","1-1",
+                               ifelse(sine.mod.data$fname=="iyu_step_2-step_2.wav","2-2",
+                                      ifelse(sine.mod.data$fname=="iyu_step_3-step_3.wav","3-3",
+                                             ifelse(sine.mod.data$fname=="iyu_step_4-step_4.wav","4-4",
+                                                    ifelse(sine.mod.data$fname=="iyu_step_5-step_5.wav","5-5",
+                                                           ifelse(sine.mod.data$fname=="iyu_step_6-step_6.wav","6-6",
+                                                                  ifelse(sine.mod.data$fname=="iyu_step_7-step_7.wav","7-7",
+                                                                         ifelse(sine.mod.data$fname=="iyu_step_1-step_3.wav","1-3",
+                                                                                ifelse(sine.mod.data$fname=="iyu_step_2-step_4.wav","2-4",
+                                                                                       ifelse(sine.mod.data$fname=="iyu_step_3-step_5.wav","3-5",
+                                                                                              ifelse(sine.mod.data$fname=="iyu_step_4-step_6.wav","4-6",
+                                                                                                     ifelse(sine.mod.data$fname=="iyu_step_5-step_7.wav","5-7",
+                                                                                                            ifelse(sine.mod.data$fname=="iyu_step_3-step_1.wav","1-3",
+                                                                                                                   ifelse(sine.mod.data$fname=="iyu_step_4-step_2.wav","2-4",
+                                                                                                                          ifelse(sine.mod.data$fname=="iyu_step_5-step_3.wav","3-5",
+                                                                                                                                 ifelse(sine.mod.data$fname=="iyu_step_6-step_4.wav","4-6",
+                                                                                                                                        ifelse(sine.mod.data$fname=="iyu_step_7-step_5.wav","5-7",NA)))))))))))))))))
+
+
+sine.mod.data$discrim.condition <- ifelse(sine.mod.data$fname2=="1-1","same",
+                                          ifelse(sine.mod.data$fname2=="2-2","same",
+                                                 ifelse(sine.mod.data$fname2=="3-3","same",
+                                                        ifelse(sine.mod.data$fname2=="4-4","same",
+                                                               ifelse(sine.mod.data$fname2=="5-5","same",
+                                                                      ifelse(sine.mod.data$fname2=="6-6","same",
+                                                                             ifelse(sine.mod.data$fname2=="7-7","same",
+                                                                                    ifelse(sine.mod.data$fname2=="1-3","different",
+                                                                                           ifelse(sine.mod.data$fname2=="2-4","different",
+                                                                                                  ifelse(sine.mod.data$fname2=="3-5","different",
+                                                                                                         ifelse(sine.mod.data$fname2=="4-6","different",
+                                                                                                                ifelse(sine.mod.data$fname2=="5-7","different",NA))))))))))))
+
+## GLMM for % accuracy in discrimation ##
+# prep data
+sine.mod.data <- subset(sine.mod.data,discrim.condition=="different")
+sine.mod.data$block <- as.factor(sine.mod.data$block)
+contrasts(sine.mod.data$block) = contr.sum(2)
+
+# run models
+sine.model1 <- glmer(correct_response ~ block + (block|subject2),
+                data=sine.mod.data, family='binomial',
+                control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 1500000)))
+summary(sine.model1)
