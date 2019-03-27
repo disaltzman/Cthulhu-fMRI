@@ -1217,6 +1217,11 @@ vowel.mod.data$block.session <- as.factor(vowel.mod.data$block.session)
 contrasts(vowel.mod.data$block.session) = contr.sum(6)
 
 # run models
+# run using afex to just get main effects and interaction
+afexmodel1 <- mixed(correct_response ~ block.session*fname2 + (1|subject2), family=binomial(link="logit"),data=vowel.mod.data,method="LRT")
+summary(afexmodel1)
+
+# run glmer to get simple effects
 model1 <- glmer(correct_response ~ block.session + (1|subject2),
                   data=vowel.mod.data, family='binomial',
                   control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 1500000)))
