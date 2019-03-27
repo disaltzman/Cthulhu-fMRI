@@ -13,6 +13,7 @@ library(tidyverse)
 library(scales)
 library(gdata)
 library(quickpsy)
+library(afex)
 source("https://raw.githubusercontent.com/janhove/janhove.github.io/master/RCode/sortLvls.R")
 theme_set(theme_bw())
 
@@ -43,7 +44,7 @@ df$rt <- as.numeric(df$rt)
 # chop off session indicator numbers to get base subject number
 df$subject2 <- ifelse(nchar(df$subject)==3,substr(df$subject,1,1),substr(df$subject,1,2))
 
-#### SESSION 1 ####
+#### SESSION 1 DESCRIPTIVES ####
 
 # split by block for session1
 pretest1 <- subset(session1,block == "pretest_discrimination")
@@ -54,83 +55,83 @@ training1.3 <- subset(session1,block == "training3")
 continuum1 <- subset(session1,block == "continuum")
 
 # create pretest performance figure
-pretest1$fname2 <- ifelse(pretest1$fname=="i-y-u_step1-step1.wav","1-1",NA)
-pretest1$fname2 <- ifelse(pretest1$fname=="i-y-u_step2-step2.wav","2-2",pretest1$fname2)
-pretest1$fname2 <- ifelse(pretest1$fname=="i-y-u_step3-step3.wav","3-3",pretest1$fname2)
-pretest1$fname2 <- ifelse(pretest1$fname=="i-y-u_step4-step4.wav","4-4",pretest1$fname2)
-pretest1$fname2 <- ifelse(pretest1$fname=="i-y-u_step5-step5.wav","5-5",pretest1$fname2)
-pretest1$fname2 <- ifelse(pretest1$fname=="i-y-u_step6-step6.wav","6-6",pretest1$fname2)
-pretest1$fname2 <- ifelse(pretest1$fname=="i-y-u_step7-step7.wav","7-7",pretest1$fname2)
-pretest1$fname2 <- ifelse(pretest1$fname=="i-y-u_step_1-step_3.wav","1-3",pretest1$fname2)
-pretest1$fname2 <- ifelse(pretest1$fname=="i-y-u_step_2-step_4.wav","2-4",pretest1$fname2)
-pretest1$fname2 <- ifelse(pretest1$fname=="i-y-u_step_3-step_5.wav","3-5",pretest1$fname2)
-pretest1$fname2 <- ifelse(pretest1$fname=="i-y-u_step_4-step_6.wav","4-6",pretest1$fname2)
-pretest1$fname2 <- ifelse(pretest1$fname=="i-y-u_step_5-step_7.wav","5-7",pretest1$fname2)
-pretest1$fname2 <- ifelse(pretest1$fname=="i-y-u_step_3-step_1.wav","1-3",pretest1$fname2)
-pretest1$fname2 <- ifelse(pretest1$fname=="i-y-u_step_4-step_2.wav","2-4",pretest1$fname2)
-pretest1$fname2 <- ifelse(pretest1$fname=="i-y-u_step_5-step_3.wav","3-5",pretest1$fname2)
-pretest1$fname2 <- ifelse(pretest1$fname=="i-y-u_step_6-step_4.wav","4-6",pretest1$fname2)
-pretest1$fname2 <- ifelse(pretest1$fname=="i-y-u_step_7-step_5.wav","5-7",pretest1$fname2)
+pretest1$discrim.token <- ifelse(pretest1$fname=="i-y-u_step1-step1.wav","1-1",NA)
+pretest1$discrim.token <- ifelse(pretest1$fname=="i-y-u_step2-step2.wav","2-2",pretest1$discrim.token)
+pretest1$discrim.token <- ifelse(pretest1$fname=="i-y-u_step3-step3.wav","3-3",pretest1$discrim.token)
+pretest1$discrim.token <- ifelse(pretest1$fname=="i-y-u_step4-step4.wav","4-4",pretest1$discrim.token)
+pretest1$discrim.token <- ifelse(pretest1$fname=="i-y-u_step5-step5.wav","5-5",pretest1$discrim.token)
+pretest1$discrim.token <- ifelse(pretest1$fname=="i-y-u_step6-step6.wav","6-6",pretest1$discrim.token)
+pretest1$discrim.token <- ifelse(pretest1$fname=="i-y-u_step7-step7.wav","7-7",pretest1$discrim.token)
+pretest1$discrim.token <- ifelse(pretest1$fname=="i-y-u_step_1-step_3.wav","1-3",pretest1$discrim.token)
+pretest1$discrim.token <- ifelse(pretest1$fname=="i-y-u_step_2-step_4.wav","2-4",pretest1$discrim.token)
+pretest1$discrim.token <- ifelse(pretest1$fname=="i-y-u_step_3-step_5.wav","3-5",pretest1$discrim.token)
+pretest1$discrim.token <- ifelse(pretest1$fname=="i-y-u_step_4-step_6.wav","4-6",pretest1$discrim.token)
+pretest1$discrim.token <- ifelse(pretest1$fname=="i-y-u_step_5-step_7.wav","5-7",pretest1$discrim.token)
+pretest1$discrim.token <- ifelse(pretest1$fname=="i-y-u_step_3-step_1.wav","1-3",pretest1$discrim.token)
+pretest1$discrim.token <- ifelse(pretest1$fname=="i-y-u_step_4-step_2.wav","2-4",pretest1$discrim.token)
+pretest1$discrim.token <- ifelse(pretest1$fname=="i-y-u_step_5-step_3.wav","3-5",pretest1$discrim.token)
+pretest1$discrim.token <- ifelse(pretest1$fname=="i-y-u_step_6-step_4.wav","4-6",pretest1$discrim.token)
+pretest1$discrim.token <- ifelse(pretest1$fname=="i-y-u_step_7-step_5.wav","5-7",pretest1$discrim.token)
 
-pretest1_figure = ddply(pretest1,.(fname2),summarize,mean=mean(correct_response))
+pretest1_figure = ddply(pretest1,.(discrim.token),summarize,mean=mean(correct_response))
 
-pretest1_figure$condition <- ifelse(pretest1_figure$fname2=="1-1","same",NA)
-pretest1_figure$condition <- ifelse(pretest1_figure$fname2=="2-2","same",pretest1_figure$condition)
-pretest1_figure$condition <- ifelse(pretest1_figure$fname2=="3-3","same",pretest1_figure$condition)
-pretest1_figure$condition <- ifelse(pretest1_figure$fname2=="4-4","same",pretest1_figure$condition)
-pretest1_figure$condition <- ifelse(pretest1_figure$fname2=="5-5","same",pretest1_figure$condition)
-pretest1_figure$condition <- ifelse(pretest1_figure$fname2=="6-6","same",pretest1_figure$condition)
-pretest1_figure$condition <- ifelse(pretest1_figure$fname2=="7-7","same",pretest1_figure$condition)
-pretest1_figure$condition <- ifelse(pretest1_figure$fname2=="1-3","different",pretest1_figure$condition)
-pretest1_figure$condition <- ifelse(pretest1_figure$fname2=="2-4","different",pretest1_figure$condition)
-pretest1_figure$condition <- ifelse(pretest1_figure$fname2=="3-5","different",pretest1_figure$condition)
-pretest1_figure$condition <- ifelse(pretest1_figure$fname2=="4-6","different",pretest1_figure$condition)
-pretest1_figure$condition <- ifelse(pretest1_figure$fname2=="5-7","different",pretest1_figure$condition)
+pretest1_figure$condition <- ifelse(pretest1_figure$discrim.token=="1-1","same",NA)
+pretest1_figure$condition <- ifelse(pretest1_figure$discrim.token=="2-2","same",pretest1_figure$condition)
+pretest1_figure$condition <- ifelse(pretest1_figure$discrim.token=="3-3","same",pretest1_figure$condition)
+pretest1_figure$condition <- ifelse(pretest1_figure$discrim.token=="4-4","same",pretest1_figure$condition)
+pretest1_figure$condition <- ifelse(pretest1_figure$discrim.token=="5-5","same",pretest1_figure$condition)
+pretest1_figure$condition <- ifelse(pretest1_figure$discrim.token=="6-6","same",pretest1_figure$condition)
+pretest1_figure$condition <- ifelse(pretest1_figure$discrim.token=="7-7","same",pretest1_figure$condition)
+pretest1_figure$condition <- ifelse(pretest1_figure$discrim.token=="1-3","different",pretest1_figure$condition)
+pretest1_figure$condition <- ifelse(pretest1_figure$discrim.token=="2-4","different",pretest1_figure$condition)
+pretest1_figure$condition <- ifelse(pretest1_figure$discrim.token=="3-5","different",pretest1_figure$condition)
+pretest1_figure$condition <- ifelse(pretest1_figure$discrim.token=="4-6","different",pretest1_figure$condition)
+pretest1_figure$condition <- ifelse(pretest1_figure$discrim.token=="5-7","different",pretest1_figure$condition)
 
 
-pretest1_figure$fname2 <- as.factor(pretest1_figure$fname2)
-pretest1_figure$fname3 <- sortLvls.fnc(pretest1_figure$fname2, c(1,3,5,7,9,11,12,2,4,6,8,10))
+pretest1_figure$discrim.token <- as.factor(pretest1_figure$discrim.token)
+pretest1_figure$fname3 <- sortLvls.fnc(pretest1_figure$discrim.token, c(1,3,5,7,9,11,12,2,4,6,8,10))
 
 pretest1_barplot <- ggplot(pretest1_figure,aes(x=fname3,y=mean,fill=condition)) + geom_bar(stat="identity") + ggtitle(label="Pre-Test Day 1")
 
 #### create posttest performance figure
 # create variable to combine forwards/backwards discrimination steps
-posttest1$fname2 <- ifelse(posttest1$fname=="i-y-u_step1-step1.wav","1-1",NA)
-posttest1$fname2 <- ifelse(posttest1$fname=="i-y-u_step2-step2.wav","2-2",posttest1$fname2)
-posttest1$fname2 <- ifelse(posttest1$fname=="i-y-u_step3-step3.wav","3-3",posttest1$fname2)
-posttest1$fname2 <- ifelse(posttest1$fname=="i-y-u_step4-step4.wav","4-4",posttest1$fname2)
-posttest1$fname2 <- ifelse(posttest1$fname=="i-y-u_step5-step5.wav","5-5",posttest1$fname2)
-posttest1$fname2 <- ifelse(posttest1$fname=="i-y-u_step6-step6.wav","6-6",posttest1$fname2)
-posttest1$fname2 <- ifelse(posttest1$fname=="i-y-u_step7-step7.wav","7-7",posttest1$fname2)
-posttest1$fname2 <- ifelse(posttest1$fname=="i-y-u_step_1-step_3.wav","1-3",posttest1$fname2)
-posttest1$fname2 <- ifelse(posttest1$fname=="i-y-u_step_2-step_4.wav","2-4",posttest1$fname2)
-posttest1$fname2 <- ifelse(posttest1$fname=="i-y-u_step_3-step_5.wav","3-5",posttest1$fname2)
-posttest1$fname2 <- ifelse(posttest1$fname=="i-y-u_step_4-step_6.wav","4-6",posttest1$fname2)
-posttest1$fname2 <- ifelse(posttest1$fname=="i-y-u_step_5-step_7.wav","5-7",posttest1$fname2)
-posttest1$fname2 <- ifelse(posttest1$fname=="i-y-u_step_3-step_1.wav","1-3",posttest1$fname2)
-posttest1$fname2 <- ifelse(posttest1$fname=="i-y-u_step_4-step_2.wav","2-4",posttest1$fname2)
-posttest1$fname2 <- ifelse(posttest1$fname=="i-y-u_step_5-step_3.wav","3-5",posttest1$fname2)
-posttest1$fname2 <- ifelse(posttest1$fname=="i-y-u_step_6-step_4.wav","4-6",posttest1$fname2)
-posttest1$fname2 <- ifelse(posttest1$fname=="i-y-u_step_7-step_5.wav","5-7",posttest1$fname2)
+posttest1$discrim.token <- ifelse(posttest1$fname=="i-y-u_step1-step1.wav","1-1",NA)
+posttest1$discrim.token <- ifelse(posttest1$fname=="i-y-u_step2-step2.wav","2-2",posttest1$discrim.token)
+posttest1$discrim.token <- ifelse(posttest1$fname=="i-y-u_step3-step3.wav","3-3",posttest1$discrim.token)
+posttest1$discrim.token <- ifelse(posttest1$fname=="i-y-u_step4-step4.wav","4-4",posttest1$discrim.token)
+posttest1$discrim.token <- ifelse(posttest1$fname=="i-y-u_step5-step5.wav","5-5",posttest1$discrim.token)
+posttest1$discrim.token <- ifelse(posttest1$fname=="i-y-u_step6-step6.wav","6-6",posttest1$discrim.token)
+posttest1$discrim.token <- ifelse(posttest1$fname=="i-y-u_step7-step7.wav","7-7",posttest1$discrim.token)
+posttest1$discrim.token <- ifelse(posttest1$fname=="i-y-u_step_1-step_3.wav","1-3",posttest1$discrim.token)
+posttest1$discrim.token <- ifelse(posttest1$fname=="i-y-u_step_2-step_4.wav","2-4",posttest1$discrim.token)
+posttest1$discrim.token <- ifelse(posttest1$fname=="i-y-u_step_3-step_5.wav","3-5",posttest1$discrim.token)
+posttest1$discrim.token <- ifelse(posttest1$fname=="i-y-u_step_4-step_6.wav","4-6",posttest1$discrim.token)
+posttest1$discrim.token <- ifelse(posttest1$fname=="i-y-u_step_5-step_7.wav","5-7",posttest1$discrim.token)
+posttest1$discrim.token <- ifelse(posttest1$fname=="i-y-u_step_3-step_1.wav","1-3",posttest1$discrim.token)
+posttest1$discrim.token <- ifelse(posttest1$fname=="i-y-u_step_4-step_2.wav","2-4",posttest1$discrim.token)
+posttest1$discrim.token <- ifelse(posttest1$fname=="i-y-u_step_5-step_3.wav","3-5",posttest1$discrim.token)
+posttest1$discrim.token <- ifelse(posttest1$fname=="i-y-u_step_6-step_4.wav","4-6",posttest1$discrim.token)
+posttest1$discrim.token <- ifelse(posttest1$fname=="i-y-u_step_7-step_5.wav","5-7",posttest1$discrim.token)
 
 # create dataframe with posttest1 accuracy by item
-posttest1_figure = ddply(posttest1,.(fname2),summarize,mean=mean(correct_response))
+posttest1_figure = ddply(posttest1,.(discrim.token),summarize,mean=mean(correct_response))
 
-posttest1_figure$condition <- ifelse(posttest1_figure$fname2=="1-1","same",NA)
-posttest1_figure$condition <- ifelse(posttest1_figure$fname2=="2-2","same",posttest1_figure$condition)
-posttest1_figure$condition <- ifelse(posttest1_figure$fname2=="3-3","same",posttest1_figure$condition)
-posttest1_figure$condition <- ifelse(posttest1_figure$fname2=="4-4","same",posttest1_figure$condition)
-posttest1_figure$condition <- ifelse(posttest1_figure$fname2=="5-5","same",posttest1_figure$condition)
-posttest1_figure$condition <- ifelse(posttest1_figure$fname2=="6-6","same",posttest1_figure$condition)
-posttest1_figure$condition <- ifelse(posttest1_figure$fname2=="7-7","same",posttest1_figure$condition)
-posttest1_figure$condition <- ifelse(posttest1_figure$fname2=="1-3","different",posttest1_figure$condition)
-posttest1_figure$condition <- ifelse(posttest1_figure$fname2=="2-4","different",posttest1_figure$condition)
-posttest1_figure$condition <- ifelse(posttest1_figure$fname2=="3-5","different",posttest1_figure$condition)
-posttest1_figure$condition <- ifelse(posttest1_figure$fname2=="4-6","different",posttest1_figure$condition)
-posttest1_figure$condition <- ifelse(posttest1_figure$fname2=="5-7","different",posttest1_figure$condition)
+posttest1_figure$condition <- ifelse(posttest1_figure$discrim.token=="1-1","same",NA)
+posttest1_figure$condition <- ifelse(posttest1_figure$discrim.token=="2-2","same",posttest1_figure$condition)
+posttest1_figure$condition <- ifelse(posttest1_figure$discrim.token=="3-3","same",posttest1_figure$condition)
+posttest1_figure$condition <- ifelse(posttest1_figure$discrim.token=="4-4","same",posttest1_figure$condition)
+posttest1_figure$condition <- ifelse(posttest1_figure$discrim.token=="5-5","same",posttest1_figure$condition)
+posttest1_figure$condition <- ifelse(posttest1_figure$discrim.token=="6-6","same",posttest1_figure$condition)
+posttest1_figure$condition <- ifelse(posttest1_figure$discrim.token=="7-7","same",posttest1_figure$condition)
+posttest1_figure$condition <- ifelse(posttest1_figure$discrim.token=="1-3","different",posttest1_figure$condition)
+posttest1_figure$condition <- ifelse(posttest1_figure$discrim.token=="2-4","different",posttest1_figure$condition)
+posttest1_figure$condition <- ifelse(posttest1_figure$discrim.token=="3-5","different",posttest1_figure$condition)
+posttest1_figure$condition <- ifelse(posttest1_figure$discrim.token=="4-6","different",posttest1_figure$condition)
+posttest1_figure$condition <- ifelse(posttest1_figure$discrim.token=="5-7","different",posttest1_figure$condition)
 
-posttest1_figure$fname2 <- as.factor(posttest1_figure$fname2)
-posttest1_figure$fname3 <- sortLvls.fnc(posttest1_figure$fname2, c(1,3,5,7,9,11,12,2,4,6,8,10))
+posttest1_figure$discrim.token <- as.factor(posttest1_figure$discrim.token)
+posttest1_figure$fname3 <- sortLvls.fnc(posttest1_figure$discrim.token, c(1,3,5,7,9,11,12,2,4,6,8,10))
 
 posttest1_barplot <- ggplot(posttest1_figure,aes(x=fname3,y=mean,fill=condition)) + geom_bar(stat="identity") + ggtitle(label="Post-Test Day 1")
 
@@ -138,7 +139,7 @@ posttest1_barplot <- ggplot(posttest1_figure,aes(x=fname3,y=mean,fill=condition)
 
 
 
-#### SESSION 2 ####
+#### SESSION 2 DESCRIPTIVES ####
 
 # split by block for session2
 pretest2 <- subset(session2,block == "pretest_discrimination")
@@ -156,83 +157,83 @@ training2.2_performance = ddply(training2.2,.(subject),summarize,mean=mean(corre
 training2.3_performance = ddply(training2.3,.(subject),summarize,mean=mean(correct_response))
 
 # create pretest performance figure
-pretest2$fname2 <- ifelse(pretest2$fname=="i-y-u_step1-step1.wav","1-1",NA)
-pretest2$fname2 <- ifelse(pretest2$fname=="i-y-u_step2-step2.wav","2-2",pretest2$fname2)
-pretest2$fname2 <- ifelse(pretest2$fname=="i-y-u_step3-step3.wav","3-3",pretest2$fname2)
-pretest2$fname2 <- ifelse(pretest2$fname=="i-y-u_step4-step4.wav","4-4",pretest2$fname2)
-pretest2$fname2 <- ifelse(pretest2$fname=="i-y-u_step5-step5.wav","5-5",pretest2$fname2)
-pretest2$fname2 <- ifelse(pretest2$fname=="i-y-u_step6-step6.wav","6-6",pretest2$fname2)
-pretest2$fname2 <- ifelse(pretest2$fname=="i-y-u_step7-step7.wav","7-7",pretest2$fname2)
-pretest2$fname2 <- ifelse(pretest2$fname=="i-y-u_step_1-step_3.wav","1-3",pretest2$fname2)
-pretest2$fname2 <- ifelse(pretest2$fname=="i-y-u_step_2-step_4.wav","2-4",pretest2$fname2)
-pretest2$fname2 <- ifelse(pretest2$fname=="i-y-u_step_3-step_5.wav","3-5",pretest2$fname2)
-pretest2$fname2 <- ifelse(pretest2$fname=="i-y-u_step_4-step_6.wav","4-6",pretest2$fname2)
-pretest2$fname2 <- ifelse(pretest2$fname=="i-y-u_step_5-step_7.wav","5-7",pretest2$fname2)
-pretest2$fname2 <- ifelse(pretest2$fname=="i-y-u_step_3-step_1.wav","1-3",pretest2$fname2)
-pretest2$fname2 <- ifelse(pretest2$fname=="i-y-u_step_4-step_2.wav","2-4",pretest2$fname2)
-pretest2$fname2 <- ifelse(pretest2$fname=="i-y-u_step_5-step_3.wav","3-5",pretest2$fname2)
-pretest2$fname2 <- ifelse(pretest2$fname=="i-y-u_step_6-step_4.wav","4-6",pretest2$fname2)
-pretest2$fname2 <- ifelse(pretest2$fname=="i-y-u_step_7-step_5.wav","5-7",pretest2$fname2)
+pretest2$discrim.token <- ifelse(pretest2$fname=="i-y-u_step1-step1.wav","1-1",NA)
+pretest2$discrim.token <- ifelse(pretest2$fname=="i-y-u_step2-step2.wav","2-2",pretest2$discrim.token)
+pretest2$discrim.token <- ifelse(pretest2$fname=="i-y-u_step3-step3.wav","3-3",pretest2$discrim.token)
+pretest2$discrim.token <- ifelse(pretest2$fname=="i-y-u_step4-step4.wav","4-4",pretest2$discrim.token)
+pretest2$discrim.token <- ifelse(pretest2$fname=="i-y-u_step5-step5.wav","5-5",pretest2$discrim.token)
+pretest2$discrim.token <- ifelse(pretest2$fname=="i-y-u_step6-step6.wav","6-6",pretest2$discrim.token)
+pretest2$discrim.token <- ifelse(pretest2$fname=="i-y-u_step7-step7.wav","7-7",pretest2$discrim.token)
+pretest2$discrim.token <- ifelse(pretest2$fname=="i-y-u_step_1-step_3.wav","1-3",pretest2$discrim.token)
+pretest2$discrim.token <- ifelse(pretest2$fname=="i-y-u_step_2-step_4.wav","2-4",pretest2$discrim.token)
+pretest2$discrim.token <- ifelse(pretest2$fname=="i-y-u_step_3-step_5.wav","3-5",pretest2$discrim.token)
+pretest2$discrim.token <- ifelse(pretest2$fname=="i-y-u_step_4-step_6.wav","4-6",pretest2$discrim.token)
+pretest2$discrim.token <- ifelse(pretest2$fname=="i-y-u_step_5-step_7.wav","5-7",pretest2$discrim.token)
+pretest2$discrim.token <- ifelse(pretest2$fname=="i-y-u_step_3-step_1.wav","1-3",pretest2$discrim.token)
+pretest2$discrim.token <- ifelse(pretest2$fname=="i-y-u_step_4-step_2.wav","2-4",pretest2$discrim.token)
+pretest2$discrim.token <- ifelse(pretest2$fname=="i-y-u_step_5-step_3.wav","3-5",pretest2$discrim.token)
+pretest2$discrim.token <- ifelse(pretest2$fname=="i-y-u_step_6-step_4.wav","4-6",pretest2$discrim.token)
+pretest2$discrim.token <- ifelse(pretest2$fname=="i-y-u_step_7-step_5.wav","5-7",pretest2$discrim.token)
 
-pretest2_figure = ddply(pretest2,.(fname2),summarize,mean=mean(correct_response))
+pretest2_figure = ddply(pretest2,.(discrim.token),summarize,mean=mean(correct_response))
 
-pretest2_figure$condition <- ifelse(pretest2_figure$fname2=="1-1","same",NA)
-pretest2_figure$condition <- ifelse(pretest2_figure$fname2=="2-2","same",pretest2_figure$condition)
-pretest2_figure$condition <- ifelse(pretest2_figure$fname2=="3-3","same",pretest2_figure$condition)
-pretest2_figure$condition <- ifelse(pretest2_figure$fname2=="4-4","same",pretest2_figure$condition)
-pretest2_figure$condition <- ifelse(pretest2_figure$fname2=="5-5","same",pretest2_figure$condition)
-pretest2_figure$condition <- ifelse(pretest2_figure$fname2=="6-6","same",pretest2_figure$condition)
-pretest2_figure$condition <- ifelse(pretest2_figure$fname2=="7-7","same",pretest2_figure$condition)
-pretest2_figure$condition <- ifelse(pretest2_figure$fname2=="1-3","different",pretest2_figure$condition)
-pretest2_figure$condition <- ifelse(pretest2_figure$fname2=="2-4","different",pretest2_figure$condition)
-pretest2_figure$condition <- ifelse(pretest2_figure$fname2=="3-5","different",pretest2_figure$condition)
-pretest2_figure$condition <- ifelse(pretest2_figure$fname2=="4-6","different",pretest2_figure$condition)
-pretest2_figure$condition <- ifelse(pretest2_figure$fname2=="5-7","different",pretest2_figure$condition)
+pretest2_figure$condition <- ifelse(pretest2_figure$discrim.token=="1-1","same",NA)
+pretest2_figure$condition <- ifelse(pretest2_figure$discrim.token=="2-2","same",pretest2_figure$condition)
+pretest2_figure$condition <- ifelse(pretest2_figure$discrim.token=="3-3","same",pretest2_figure$condition)
+pretest2_figure$condition <- ifelse(pretest2_figure$discrim.token=="4-4","same",pretest2_figure$condition)
+pretest2_figure$condition <- ifelse(pretest2_figure$discrim.token=="5-5","same",pretest2_figure$condition)
+pretest2_figure$condition <- ifelse(pretest2_figure$discrim.token=="6-6","same",pretest2_figure$condition)
+pretest2_figure$condition <- ifelse(pretest2_figure$discrim.token=="7-7","same",pretest2_figure$condition)
+pretest2_figure$condition <- ifelse(pretest2_figure$discrim.token=="1-3","different",pretest2_figure$condition)
+pretest2_figure$condition <- ifelse(pretest2_figure$discrim.token=="2-4","different",pretest2_figure$condition)
+pretest2_figure$condition <- ifelse(pretest2_figure$discrim.token=="3-5","different",pretest2_figure$condition)
+pretest2_figure$condition <- ifelse(pretest2_figure$discrim.token=="4-6","different",pretest2_figure$condition)
+pretest2_figure$condition <- ifelse(pretest2_figure$discrim.token=="5-7","different",pretest2_figure$condition)
 
-pretest2_figure$fname2 <- as.factor(pretest2_figure$fname2)
-pretest2_figure$fname3 <- sortLvls.fnc(pretest2_figure$fname2, c(1,3,5,7,9,11,12,2,4,6,8,10))
+pretest2_figure$discrim.token <- as.factor(pretest2_figure$discrim.token)
+pretest2_figure$fname3 <- sortLvls.fnc(pretest2_figure$discrim.token, c(1,3,5,7,9,11,12,2,4,6,8,10))
 
 pretest2_barplot <- ggplot(pretest2_figure,aes(x=fname3,y=mean,fill=condition)) + geom_bar(stat="identity") + ggtitle(label="Pre-Test Day 2")
 
 
 #### create posttest2 performance figure
 # create variable to combine forwards/backwards discrimination steps
-posttest2$fname2 <- ifelse(posttest2$fname=="i-y-u_step1-step1.wav","1-1",NA)
-posttest2$fname2 <- ifelse(posttest2$fname=="i-y-u_step2-step2.wav","2-2",posttest2$fname2)
-posttest2$fname2 <- ifelse(posttest2$fname=="i-y-u_step3-step3.wav","3-3",posttest2$fname2)
-posttest2$fname2 <- ifelse(posttest2$fname=="i-y-u_step4-step4.wav","4-4",posttest2$fname2)
-posttest2$fname2 <- ifelse(posttest2$fname=="i-y-u_step5-step5.wav","5-5",posttest2$fname2)
-posttest2$fname2 <- ifelse(posttest2$fname=="i-y-u_step6-step6.wav","6-6",posttest2$fname2)
-posttest2$fname2 <- ifelse(posttest2$fname=="i-y-u_step7-step7.wav","7-7",posttest2$fname2)
-posttest2$fname2 <- ifelse(posttest2$fname=="i-y-u_step_1-step_3.wav","1-3",posttest2$fname2)
-posttest2$fname2 <- ifelse(posttest2$fname=="i-y-u_step_2-step_4.wav","2-4",posttest2$fname2)
-posttest2$fname2 <- ifelse(posttest2$fname=="i-y-u_step_3-step_5.wav","3-5",posttest2$fname2)
-posttest2$fname2 <- ifelse(posttest2$fname=="i-y-u_step_4-step_6.wav","4-6",posttest2$fname2)
-posttest2$fname2 <- ifelse(posttest2$fname=="i-y-u_step_5-step_7.wav","5-7",posttest2$fname2)
-posttest2$fname2 <- ifelse(posttest2$fname=="i-y-u_step_3-step_1.wav","1-3",posttest2$fname2)
-posttest2$fname2 <- ifelse(posttest2$fname=="i-y-u_step_4-step_2.wav","2-4",posttest2$fname2)
-posttest2$fname2 <- ifelse(posttest2$fname=="i-y-u_step_5-step_3.wav","3-5",posttest2$fname2)
-posttest2$fname2 <- ifelse(posttest2$fname=="i-y-u_step_6-step_4.wav","4-6",posttest2$fname2)
-posttest2$fname2 <- ifelse(posttest2$fname=="i-y-u_step_7-step_5.wav","5-7",posttest2$fname2)
+posttest2$discrim.token <- ifelse(posttest2$fname=="i-y-u_step1-step1.wav","1-1",NA)
+posttest2$discrim.token <- ifelse(posttest2$fname=="i-y-u_step2-step2.wav","2-2",posttest2$discrim.token)
+posttest2$discrim.token <- ifelse(posttest2$fname=="i-y-u_step3-step3.wav","3-3",posttest2$discrim.token)
+posttest2$discrim.token <- ifelse(posttest2$fname=="i-y-u_step4-step4.wav","4-4",posttest2$discrim.token)
+posttest2$discrim.token <- ifelse(posttest2$fname=="i-y-u_step5-step5.wav","5-5",posttest2$discrim.token)
+posttest2$discrim.token <- ifelse(posttest2$fname=="i-y-u_step6-step6.wav","6-6",posttest2$discrim.token)
+posttest2$discrim.token <- ifelse(posttest2$fname=="i-y-u_step7-step7.wav","7-7",posttest2$discrim.token)
+posttest2$discrim.token <- ifelse(posttest2$fname=="i-y-u_step_1-step_3.wav","1-3",posttest2$discrim.token)
+posttest2$discrim.token <- ifelse(posttest2$fname=="i-y-u_step_2-step_4.wav","2-4",posttest2$discrim.token)
+posttest2$discrim.token <- ifelse(posttest2$fname=="i-y-u_step_3-step_5.wav","3-5",posttest2$discrim.token)
+posttest2$discrim.token <- ifelse(posttest2$fname=="i-y-u_step_4-step_6.wav","4-6",posttest2$discrim.token)
+posttest2$discrim.token <- ifelse(posttest2$fname=="i-y-u_step_5-step_7.wav","5-7",posttest2$discrim.token)
+posttest2$discrim.token <- ifelse(posttest2$fname=="i-y-u_step_3-step_1.wav","1-3",posttest2$discrim.token)
+posttest2$discrim.token <- ifelse(posttest2$fname=="i-y-u_step_4-step_2.wav","2-4",posttest2$discrim.token)
+posttest2$discrim.token <- ifelse(posttest2$fname=="i-y-u_step_5-step_3.wav","3-5",posttest2$discrim.token)
+posttest2$discrim.token <- ifelse(posttest2$fname=="i-y-u_step_6-step_4.wav","4-6",posttest2$discrim.token)
+posttest2$discrim.token <- ifelse(posttest2$fname=="i-y-u_step_7-step_5.wav","5-7",posttest2$discrim.token)
 
 # create dataframe with posttest2 accuracy by item
-posttest2_figure = ddply(posttest2,.(fname2),summarize,mean=mean(correct_response))
+posttest2_figure = ddply(posttest2,.(discrim.token),summarize,mean=mean(correct_response))
 
-posttest2_figure$condition <- ifelse(posttest2_figure$fname2=="1-1","same",NA)
-posttest2_figure$condition <- ifelse(posttest2_figure$fname2=="2-2","same",posttest2_figure$condition)
-posttest2_figure$condition <- ifelse(posttest2_figure$fname2=="3-3","same",posttest2_figure$condition)
-posttest2_figure$condition <- ifelse(posttest2_figure$fname2=="4-4","same",posttest2_figure$condition)
-posttest2_figure$condition <- ifelse(posttest2_figure$fname2=="5-5","same",posttest2_figure$condition)
-posttest2_figure$condition <- ifelse(posttest2_figure$fname2=="6-6","same",posttest2_figure$condition)
-posttest2_figure$condition <- ifelse(posttest2_figure$fname2=="7-7","same",posttest2_figure$condition)
-posttest2_figure$condition <- ifelse(posttest2_figure$fname2=="1-3","different",posttest2_figure$condition)
-posttest2_figure$condition <- ifelse(posttest2_figure$fname2=="2-4","different",posttest2_figure$condition)
-posttest2_figure$condition <- ifelse(posttest2_figure$fname2=="3-5","different",posttest2_figure$condition)
-posttest2_figure$condition <- ifelse(posttest2_figure$fname2=="4-6","different",posttest2_figure$condition)
-posttest2_figure$condition <- ifelse(posttest2_figure$fname2=="5-7","different",posttest2_figure$condition)
+posttest2_figure$condition <- ifelse(posttest2_figure$discrim.token=="1-1","same",NA)
+posttest2_figure$condition <- ifelse(posttest2_figure$discrim.token=="2-2","same",posttest2_figure$condition)
+posttest2_figure$condition <- ifelse(posttest2_figure$discrim.token=="3-3","same",posttest2_figure$condition)
+posttest2_figure$condition <- ifelse(posttest2_figure$discrim.token=="4-4","same",posttest2_figure$condition)
+posttest2_figure$condition <- ifelse(posttest2_figure$discrim.token=="5-5","same",posttest2_figure$condition)
+posttest2_figure$condition <- ifelse(posttest2_figure$discrim.token=="6-6","same",posttest2_figure$condition)
+posttest2_figure$condition <- ifelse(posttest2_figure$discrim.token=="7-7","same",posttest2_figure$condition)
+posttest2_figure$condition <- ifelse(posttest2_figure$discrim.token=="1-3","different",posttest2_figure$condition)
+posttest2_figure$condition <- ifelse(posttest2_figure$discrim.token=="2-4","different",posttest2_figure$condition)
+posttest2_figure$condition <- ifelse(posttest2_figure$discrim.token=="3-5","different",posttest2_figure$condition)
+posttest2_figure$condition <- ifelse(posttest2_figure$discrim.token=="4-6","different",posttest2_figure$condition)
+posttest2_figure$condition <- ifelse(posttest2_figure$discrim.token=="5-7","different",posttest2_figure$condition)
 
-posttest2_figure$fname2 <- as.factor(posttest2_figure$fname2)
-posttest2_figure$fname3 <- sortLvls.fnc(posttest2_figure$fname2, c(1,3,5,7,9,11,12,2,4,6,8,10))
+posttest2_figure$discrim.token <- as.factor(posttest2_figure$discrim.token)
+posttest2_figure$fname3 <- sortLvls.fnc(posttest2_figure$discrim.token, c(1,3,5,7,9,11,12,2,4,6,8,10))
 
 posttest2_barplot <- ggplot(posttest2_figure,aes(x=fname3,y=mean,fill=condition)) + geom_bar(stat="identity") + ggtitle(label="Post-Test Day 2")
 
@@ -242,7 +243,7 @@ posttest2_barplot <- ggplot(posttest2_figure,aes(x=fname3,y=mean,fill=condition)
 
 
 
-#### SESSION 3 ####
+#### SESSION 3 DESCRIPTIVES ####
 
 # split by block for session3
 pretest3 <- subset(session3,block == "pretest_discrimination")
@@ -260,88 +261,88 @@ training3.2_performance = ddply(training3.2,.(subject),summarize,mean=mean(corre
 training3.3_performance = ddply(training3.3,.(subject),summarize,mean=mean(correct_response))
 
 # create pretest performance figure
-pretest3$fname2 <- ifelse(pretest3$fname=="i-y-u_step1-step1.wav","1-1",NA)
-pretest3$fname2 <- ifelse(pretest3$fname=="i-y-u_step2-step2.wav","2-2",pretest3$fname2)
-pretest3$fname2 <- ifelse(pretest3$fname=="i-y-u_step3-step3.wav","3-3",pretest3$fname2)
-pretest3$fname2 <- ifelse(pretest3$fname=="i-y-u_step4-step4.wav","4-4",pretest3$fname2)
-pretest3$fname2 <- ifelse(pretest3$fname=="i-y-u_step5-step5.wav","5-5",pretest3$fname2)
-pretest3$fname2 <- ifelse(pretest3$fname=="i-y-u_step6-step6.wav","6-6",pretest3$fname2)
-pretest3$fname2 <- ifelse(pretest3$fname=="i-y-u_step7-step7.wav","7-7",pretest3$fname2)
-pretest3$fname2 <- ifelse(pretest3$fname=="i-y-u_step_1-step_3.wav","1-3",pretest3$fname2)
-pretest3$fname2 <- ifelse(pretest3$fname=="i-y-u_step_2-step_4.wav","2-4",pretest3$fname2)
-pretest3$fname2 <- ifelse(pretest3$fname=="i-y-u_step_3-step_5.wav","3-5",pretest3$fname2)
-pretest3$fname2 <- ifelse(pretest3$fname=="i-y-u_step_4-step_6.wav","4-6",pretest3$fname2)
-pretest3$fname2 <- ifelse(pretest3$fname=="i-y-u_step_5-step_7.wav","5-7",pretest3$fname2)
-pretest3$fname2 <- ifelse(pretest3$fname=="i-y-u_step_3-step_1.wav","1-3",pretest3$fname2)
-pretest3$fname2 <- ifelse(pretest3$fname=="i-y-u_step_4-step_2.wav","2-4",pretest3$fname2)
-pretest3$fname2 <- ifelse(pretest3$fname=="i-y-u_step_5-step_3.wav","3-5",pretest3$fname2)
-pretest3$fname2 <- ifelse(pretest3$fname=="i-y-u_step_6-step_4.wav","4-6",pretest3$fname2)
-pretest3$fname2 <- ifelse(pretest3$fname=="i-y-u_step_7-step_5.wav","5-7",pretest3$fname2)
+pretest3$discrim.token <- ifelse(pretest3$fname=="i-y-u_step1-step1.wav","1-1",NA)
+pretest3$discrim.token <- ifelse(pretest3$fname=="i-y-u_step2-step2.wav","2-2",pretest3$discrim.token)
+pretest3$discrim.token <- ifelse(pretest3$fname=="i-y-u_step3-step3.wav","3-3",pretest3$discrim.token)
+pretest3$discrim.token <- ifelse(pretest3$fname=="i-y-u_step4-step4.wav","4-4",pretest3$discrim.token)
+pretest3$discrim.token <- ifelse(pretest3$fname=="i-y-u_step5-step5.wav","5-5",pretest3$discrim.token)
+pretest3$discrim.token <- ifelse(pretest3$fname=="i-y-u_step6-step6.wav","6-6",pretest3$discrim.token)
+pretest3$discrim.token <- ifelse(pretest3$fname=="i-y-u_step7-step7.wav","7-7",pretest3$discrim.token)
+pretest3$discrim.token <- ifelse(pretest3$fname=="i-y-u_step_1-step_3.wav","1-3",pretest3$discrim.token)
+pretest3$discrim.token <- ifelse(pretest3$fname=="i-y-u_step_2-step_4.wav","2-4",pretest3$discrim.token)
+pretest3$discrim.token <- ifelse(pretest3$fname=="i-y-u_step_3-step_5.wav","3-5",pretest3$discrim.token)
+pretest3$discrim.token <- ifelse(pretest3$fname=="i-y-u_step_4-step_6.wav","4-6",pretest3$discrim.token)
+pretest3$discrim.token <- ifelse(pretest3$fname=="i-y-u_step_5-step_7.wav","5-7",pretest3$discrim.token)
+pretest3$discrim.token <- ifelse(pretest3$fname=="i-y-u_step_3-step_1.wav","1-3",pretest3$discrim.token)
+pretest3$discrim.token <- ifelse(pretest3$fname=="i-y-u_step_4-step_2.wav","2-4",pretest3$discrim.token)
+pretest3$discrim.token <- ifelse(pretest3$fname=="i-y-u_step_5-step_3.wav","3-5",pretest3$discrim.token)
+pretest3$discrim.token <- ifelse(pretest3$fname=="i-y-u_step_6-step_4.wav","4-6",pretest3$discrim.token)
+pretest3$discrim.token <- ifelse(pretest3$fname=="i-y-u_step_7-step_5.wav","5-7",pretest3$discrim.token)
 
-pretest3_figure = ddply(pretest3,.(fname2),summarize,mean=mean(correct_response))
+pretest3_figure = ddply(pretest3,.(discrim.token),summarize,mean=mean(correct_response))
 
-pretest3_figure$condition <- ifelse(pretest3_figure$fname2=="1-1","same",NA)
-pretest3_figure$condition <- ifelse(pretest3_figure$fname2=="2-2","same",pretest3_figure$condition)
-pretest3_figure$condition <- ifelse(pretest3_figure$fname2=="3-3","same",pretest3_figure$condition)
-pretest3_figure$condition <- ifelse(pretest3_figure$fname2=="4-4","same",pretest3_figure$condition)
-pretest3_figure$condition <- ifelse(pretest3_figure$fname2=="5-5","same",pretest3_figure$condition)
-pretest3_figure$condition <- ifelse(pretest3_figure$fname2=="6-6","same",pretest3_figure$condition)
-pretest3_figure$condition <- ifelse(pretest3_figure$fname2=="7-7","same",pretest3_figure$condition)
-pretest3_figure$condition <- ifelse(pretest3_figure$fname2=="1-3","different",pretest3_figure$condition)
-pretest3_figure$condition <- ifelse(pretest3_figure$fname2=="2-4","different",pretest3_figure$condition)
-pretest3_figure$condition <- ifelse(pretest3_figure$fname2=="3-5","different",pretest3_figure$condition)
-pretest3_figure$condition <- ifelse(pretest3_figure$fname2=="4-6","different",pretest3_figure$condition)
-pretest3_figure$condition <- ifelse(pretest3_figure$fname2=="5-7","different",pretest3_figure$condition)
+pretest3_figure$condition <- ifelse(pretest3_figure$discrim.token=="1-1","same",NA)
+pretest3_figure$condition <- ifelse(pretest3_figure$discrim.token=="2-2","same",pretest3_figure$condition)
+pretest3_figure$condition <- ifelse(pretest3_figure$discrim.token=="3-3","same",pretest3_figure$condition)
+pretest3_figure$condition <- ifelse(pretest3_figure$discrim.token=="4-4","same",pretest3_figure$condition)
+pretest3_figure$condition <- ifelse(pretest3_figure$discrim.token=="5-5","same",pretest3_figure$condition)
+pretest3_figure$condition <- ifelse(pretest3_figure$discrim.token=="6-6","same",pretest3_figure$condition)
+pretest3_figure$condition <- ifelse(pretest3_figure$discrim.token=="7-7","same",pretest3_figure$condition)
+pretest3_figure$condition <- ifelse(pretest3_figure$discrim.token=="1-3","different",pretest3_figure$condition)
+pretest3_figure$condition <- ifelse(pretest3_figure$discrim.token=="2-4","different",pretest3_figure$condition)
+pretest3_figure$condition <- ifelse(pretest3_figure$discrim.token=="3-5","different",pretest3_figure$condition)
+pretest3_figure$condition <- ifelse(pretest3_figure$discrim.token=="4-6","different",pretest3_figure$condition)
+pretest3_figure$condition <- ifelse(pretest3_figure$discrim.token=="5-7","different",pretest3_figure$condition)
 
 
-pretest3_figure$fname2 <- as.factor(pretest3_figure$fname2)
-pretest3_figure$fname3 <- sortLvls.fnc(pretest3_figure$fname2, c(1,3,5,7,9,11,12,2,4,6,8,10))
+pretest3_figure$discrim.token <- as.factor(pretest3_figure$discrim.token)
+pretest3_figure$fname3 <- sortLvls.fnc(pretest3_figure$discrim.token, c(1,3,5,7,9,11,12,2,4,6,8,10))
 
 pretest3_barplot <- ggplot(pretest3_figure,aes(x=fname3,y=mean,fill=condition)) + geom_bar(stat="identity") + ggtitle(label="Pre-Test Day 3")
 
 #### create posttest3 performance figure
 # create variable to combine forwards/backwards discrimination steps
-posttest3$fname2 <- ifelse(posttest3$fname=="i-y-u_step1-step1.wav","1-1",NA)
-posttest3$fname2 <- ifelse(posttest3$fname=="i-y-u_step2-step2.wav","2-2",posttest3$fname2)
-posttest3$fname2 <- ifelse(posttest3$fname=="i-y-u_step3-step3.wav","3-3",posttest3$fname2)
-posttest3$fname2 <- ifelse(posttest3$fname=="i-y-u_step4-step4.wav","4-4",posttest3$fname2)
-posttest3$fname2 <- ifelse(posttest3$fname=="i-y-u_step5-step5.wav","5-5",posttest3$fname2)
-posttest3$fname2 <- ifelse(posttest3$fname=="i-y-u_step6-step6.wav","6-6",posttest3$fname2)
-posttest3$fname2 <- ifelse(posttest3$fname=="i-y-u_step7-step7.wav","7-7",posttest3$fname2)
-posttest3$fname2 <- ifelse(posttest3$fname=="i-y-u_step_1-step_3.wav","1-3",posttest3$fname2)
-posttest3$fname2 <- ifelse(posttest3$fname=="i-y-u_step_2-step_4.wav","2-4",posttest3$fname2)
-posttest3$fname2 <- ifelse(posttest3$fname=="i-y-u_step_3-step_5.wav","3-5",posttest3$fname2)
-posttest3$fname2 <- ifelse(posttest3$fname=="i-y-u_step_4-step_6.wav","4-6",posttest3$fname2)
-posttest3$fname2 <- ifelse(posttest3$fname=="i-y-u_step_5-step_7.wav","5-7",posttest3$fname2)
-posttest3$fname2 <- ifelse(posttest3$fname=="i-y-u_step_3-step_1.wav","1-3",posttest3$fname2)
-posttest3$fname2 <- ifelse(posttest3$fname=="i-y-u_step_4-step_2.wav","2-4",posttest3$fname2)
-posttest3$fname2 <- ifelse(posttest3$fname=="i-y-u_step_5-step_3.wav","3-5",posttest3$fname2)
-posttest3$fname2 <- ifelse(posttest3$fname=="i-y-u_step_6-step_4.wav","4-6",posttest3$fname2)
-posttest3$fname2 <- ifelse(posttest3$fname=="i-y-u_step_7-step_5.wav","5-7",posttest3$fname2)
+posttest3$discrim.token <- ifelse(posttest3$fname=="i-y-u_step1-step1.wav","1-1",NA)
+posttest3$discrim.token <- ifelse(posttest3$fname=="i-y-u_step2-step2.wav","2-2",posttest3$discrim.token)
+posttest3$discrim.token <- ifelse(posttest3$fname=="i-y-u_step3-step3.wav","3-3",posttest3$discrim.token)
+posttest3$discrim.token <- ifelse(posttest3$fname=="i-y-u_step4-step4.wav","4-4",posttest3$discrim.token)
+posttest3$discrim.token <- ifelse(posttest3$fname=="i-y-u_step5-step5.wav","5-5",posttest3$discrim.token)
+posttest3$discrim.token <- ifelse(posttest3$fname=="i-y-u_step6-step6.wav","6-6",posttest3$discrim.token)
+posttest3$discrim.token <- ifelse(posttest3$fname=="i-y-u_step7-step7.wav","7-7",posttest3$discrim.token)
+posttest3$discrim.token <- ifelse(posttest3$fname=="i-y-u_step_1-step_3.wav","1-3",posttest3$discrim.token)
+posttest3$discrim.token <- ifelse(posttest3$fname=="i-y-u_step_2-step_4.wav","2-4",posttest3$discrim.token)
+posttest3$discrim.token <- ifelse(posttest3$fname=="i-y-u_step_3-step_5.wav","3-5",posttest3$discrim.token)
+posttest3$discrim.token <- ifelse(posttest3$fname=="i-y-u_step_4-step_6.wav","4-6",posttest3$discrim.token)
+posttest3$discrim.token <- ifelse(posttest3$fname=="i-y-u_step_5-step_7.wav","5-7",posttest3$discrim.token)
+posttest3$discrim.token <- ifelse(posttest3$fname=="i-y-u_step_3-step_1.wav","1-3",posttest3$discrim.token)
+posttest3$discrim.token <- ifelse(posttest3$fname=="i-y-u_step_4-step_2.wav","2-4",posttest3$discrim.token)
+posttest3$discrim.token <- ifelse(posttest3$fname=="i-y-u_step_5-step_3.wav","3-5",posttest3$discrim.token)
+posttest3$discrim.token <- ifelse(posttest3$fname=="i-y-u_step_6-step_4.wav","4-6",posttest3$discrim.token)
+posttest3$discrim.token <- ifelse(posttest3$fname=="i-y-u_step_7-step_5.wav","5-7",posttest3$discrim.token)
 
 # create dataframe with posttest3 accuracy by item
-posttest3_figure = ddply(posttest3,.(fname2),summarize,mean=mean(correct_response))
+posttest3_figure = ddply(posttest3,.(discrim.token),summarize,mean=mean(correct_response))
 
-posttest3_figure$condition <- ifelse(posttest3_figure$fname2=="1-1","same",NA)
-posttest3_figure$condition <- ifelse(posttest3_figure$fname2=="2-2","same",posttest3_figure$condition)
-posttest3_figure$condition <- ifelse(posttest3_figure$fname2=="3-3","same",posttest3_figure$condition)
-posttest3_figure$condition <- ifelse(posttest3_figure$fname2=="4-4","same",posttest3_figure$condition)
-posttest3_figure$condition <- ifelse(posttest3_figure$fname2=="5-5","same",posttest3_figure$condition)
-posttest3_figure$condition <- ifelse(posttest3_figure$fname2=="6-6","same",posttest3_figure$condition)
-posttest3_figure$condition <- ifelse(posttest3_figure$fname2=="7-7","same",posttest3_figure$condition)
-posttest3_figure$condition <- ifelse(posttest3_figure$fname2=="1-3","different",posttest3_figure$condition)
-posttest3_figure$condition <- ifelse(posttest3_figure$fname2=="2-4","different",posttest3_figure$condition)
-posttest3_figure$condition <- ifelse(posttest3_figure$fname2=="3-5","different",posttest3_figure$condition)
-posttest3_figure$condition <- ifelse(posttest3_figure$fname2=="4-6","different",posttest3_figure$condition)
-posttest3_figure$condition <- ifelse(posttest3_figure$fname2=="5-7","different",posttest3_figure$condition)
+posttest3_figure$condition <- ifelse(posttest3_figure$discrim.token=="1-1","same",NA)
+posttest3_figure$condition <- ifelse(posttest3_figure$discrim.token=="2-2","same",posttest3_figure$condition)
+posttest3_figure$condition <- ifelse(posttest3_figure$discrim.token=="3-3","same",posttest3_figure$condition)
+posttest3_figure$condition <- ifelse(posttest3_figure$discrim.token=="4-4","same",posttest3_figure$condition)
+posttest3_figure$condition <- ifelse(posttest3_figure$discrim.token=="5-5","same",posttest3_figure$condition)
+posttest3_figure$condition <- ifelse(posttest3_figure$discrim.token=="6-6","same",posttest3_figure$condition)
+posttest3_figure$condition <- ifelse(posttest3_figure$discrim.token=="7-7","same",posttest3_figure$condition)
+posttest3_figure$condition <- ifelse(posttest3_figure$discrim.token=="1-3","different",posttest3_figure$condition)
+posttest3_figure$condition <- ifelse(posttest3_figure$discrim.token=="2-4","different",posttest3_figure$condition)
+posttest3_figure$condition <- ifelse(posttest3_figure$discrim.token=="3-5","different",posttest3_figure$condition)
+posttest3_figure$condition <- ifelse(posttest3_figure$discrim.token=="4-6","different",posttest3_figure$condition)
+posttest3_figure$condition <- ifelse(posttest3_figure$discrim.token=="5-7","different",posttest3_figure$condition)
 
-posttest3_figure$fname2 <- as.factor(posttest3_figure$fname2)
-posttest3_figure$fname3 <- sortLvls.fnc(posttest3_figure$fname2, c(1,3,5,7,9,11,12,2,4,6,8,10))
+posttest3_figure$discrim.token <- as.factor(posttest3_figure$discrim.token)
+posttest3_figure$fname3 <- sortLvls.fnc(posttest3_figure$discrim.token, c(1,3,5,7,9,11,12,2,4,6,8,10))
 
 posttest3_barplot <- ggplot(posttest3_figure,aes(x=fname3,y=mean,fill=condition)) + geom_bar(stat="identity") + ggtitle(label="Post-Test Day 3")
 
 
-#### SESSION 4 ####
+#### SESSION 4 DESCRIPTIVES ####
 
 session4_performance = ddply(session4,.(subject,block),summarize,mean=mean(correct_response))
 
@@ -350,7 +351,7 @@ ggplot(session4_performance,aes(x=subject,y=mean)) + geom_bar(stat="identity",po
   geom_hline(yintercept=0.8,linetype="dashed")
                               
 
-#### FOR SINE SESSION ####
+#### SINE SESSION DESCRIPTIVES ####
 
 sine_session <- subset(df,session == "S3")
 
@@ -370,28 +371,7 @@ training_sine.2_performance = ddply(training_sine.2,.(subject),summarize,mean=me
 training_sine.3_performance = ddply(training_sine.3,.(subject),summarize,mean=mean(correct_response))
 
 
-#### OTHER FIGURES ####
-
-### grid of discrimination plots from each day
-plot_grid(pretest1_barplot,pretest2_barplot,pretest3_barplot,posttest1_barplot,posttest2_barplot,posttest3_barplot)
-
-# plot by subject performance for each discrimination task across each day
-# combine performances across tasks and days
-by_subject_performance <- combine(pretest1_performance,posttest1_performance,pretest2_performance,posttest2_performance,
-                                  pretest3_performance,posttest3_performance,pretest_sine_performance,posttest_sine_performance)
-
-# add new variable to work around day-specific subject ID's
-by_subject_performance$subject2 <- ifelse(nchar(by_subject_performance$subject)==3,substr(by_subject_performance$subject,1,1),substr(by_subject_performance$subject,1,2))
-
-# by subject performance for each discrimination task
-ggplot(by_subject_performance,aes(x=subject2,y=mean)) + geom_bar(stat="identity",position="dodge",aes(fill=source))
-
-
-
-
-
-
-#### FOR TALK SHOP 11/29 ####
+#### FIGURES FOR MANUSCRIPT (DPRIME,TRAINING) ####
 
 # create training performance figure with training sublock on the X axis and session as grouping variable
 
@@ -483,7 +463,7 @@ discrim_fig_data_vowel <- subset(discrim_fig_data,session!="S3")
 discrim_fig_data_vowel <- subset(discrim_fig_data_vowel,grepl("posttest",block))
 
 # create variable to combine forwards/backwards discrimination steps
-discrim_fig_data_vowel$fname2 <- ifelse(discrim_fig_data_vowel$fname=="i-y-u_step1-step1.wav","1-1",
+discrim_fig_data_vowel$discrim.token <- ifelse(discrim_fig_data_vowel$fname=="i-y-u_step1-step1.wav","1-1",
                                         ifelse(discrim_fig_data_vowel$fname=="i-y-u_step2-step2.wav","2-2",
                                                ifelse(discrim_fig_data_vowel$fname=="i-y-u_step3-step3.wav","3-3",
                                                       ifelse(discrim_fig_data_vowel$fname=="i-y-u_step4-step4.wav","4-4",
@@ -502,18 +482,18 @@ discrim_fig_data_vowel$fname2 <- ifelse(discrim_fig_data_vowel$fname=="i-y-u_ste
                                                                                                                                                  ifelse(discrim_fig_data_vowel$fname=="i-y-u_step_7-step_5.wav","5-7",NA)))))))))))))))))
 
 
-discrim_fig_data_vowel$condition <- ifelse(discrim_fig_data_vowel$fname2=="1-1","same",
-                                           ifelse(discrim_fig_data_vowel$fname2=="2-2","same",
-                                                  ifelse(discrim_fig_data_vowel$fname2=="3-3","same",
-                                                         ifelse(discrim_fig_data_vowel$fname2=="4-4","same",
-                                                                ifelse(discrim_fig_data_vowel$fname2=="5-5","same",
-                                                                       ifelse(discrim_fig_data_vowel$fname2=="6-6","same",
-                                                                              ifelse(discrim_fig_data_vowel$fname2=="7-7","same",
-                                                                                     ifelse(discrim_fig_data_vowel$fname2=="1-3","different",
-                                                                                            ifelse(discrim_fig_data_vowel$fname2=="2-4","different",
-                                                                                                   ifelse(discrim_fig_data_vowel$fname2=="3-5","different",
-                                                                                                          ifelse(discrim_fig_data_vowel$fname2=="4-6","different",
-                                                                                                                 ifelse(discrim_fig_data_vowel$fname2=="5-7","different",NA))))))))))))
+discrim_fig_data_vowel$condition <- ifelse(discrim_fig_data_vowel$discrim.token=="1-1","same",
+                                           ifelse(discrim_fig_data_vowel$discrim.token=="2-2","same",
+                                                  ifelse(discrim_fig_data_vowel$discrim.token=="3-3","same",
+                                                         ifelse(discrim_fig_data_vowel$discrim.token=="4-4","same",
+                                                                ifelse(discrim_fig_data_vowel$discrim.token=="5-5","same",
+                                                                       ifelse(discrim_fig_data_vowel$discrim.token=="6-6","same",
+                                                                              ifelse(discrim_fig_data_vowel$discrim.token=="7-7","same",
+                                                                                     ifelse(discrim_fig_data_vowel$discrim.token=="1-3","different",
+                                                                                            ifelse(discrim_fig_data_vowel$discrim.token=="2-4","different",
+                                                                                                   ifelse(discrim_fig_data_vowel$discrim.token=="3-5","different",
+                                                                                                          ifelse(discrim_fig_data_vowel$discrim.token=="4-6","different",
+                                                                                                                 ifelse(discrim_fig_data_vowel$discrim.token=="5-7","different",NA))))))))))))
                                                                                                                         
 ### calculate d' ###
 
@@ -580,13 +560,11 @@ ggplot(dprime,aes(x=Session,y=dprime)) +
   theme_dark() +
   theme(text = element_text(size=20))
 
-
-
 ### calculate d' for each stimulus ###
 # make a new data frame that contains the data we need
 
 df4 <- discrim_fig_data_vowel %>%
-  group_by(session,subject2,condition,fname2) %>%
+  group_by(session,subject2,condition,discrim.token) %>%
   summarize(prop_cor = mean(correct_response))
 
 df4 <- df4 %>% mutate(prop_incor=1-prop_cor)
@@ -611,10 +589,10 @@ df4$prop_incor <- cutoff_0(df4$prop_incor,.01)
 # make function for d', then apply it to each stimulus
 
 ### 1-3 ###
-dprime_temp_same <- subset(df4,df4$fname2=="1-1" | df4$fname2=="3-3")
+dprime_temp_same <- subset(df4,df4$discrim.token=="1-1" | df4$discrim.token=="3-3")
 dprime_temp_same <- ddply(dprime_temp_same,.(session,subject2),summarize,mean=mean(prop_incor))
 dprime_temp_same$condition <- "FA"
-dprime_temp_different <- subset(df4,df4$fname2=="1-3")
+dprime_temp_different <- subset(df4,df4$discrim.token=="1-3")
 dprime_temp_different <- ddply(dprime_temp_different,.(session,subject2),summarize,mean=mean(prop_cor))
 dprime_temp_different$condition <- "Hit"
 dprime_temp3 <- rbind(dprime_temp_same,dprime_temp_different)
@@ -631,10 +609,10 @@ dprime_id_temp1 <- dprime_temp3 %>%
 dprime_id_temp1$stimulus <- "1-3"
 
 ### 2-4 ###
-dprime_temp_same <- subset(df4,df4$fname2=="2-2" | df4$fname2=="4-4")
+dprime_temp_same <- subset(df4,df4$discrim.token=="2-2" | df4$discrim.token=="4-4")
 dprime_temp_same <- ddply(dprime_temp_same,.(session,subject2),summarize,mean=mean(prop_incor))
 dprime_temp_same$condition <- "FA"
-dprime_temp_different <- subset(df4,df4$fname2=="2-4")
+dprime_temp_different <- subset(df4,df4$discrim.token=="2-4")
 dprime_temp_different <- ddply(dprime_temp_different,.(session,subject2),summarize,mean=mean(prop_cor))
 dprime_temp_different$condition <- "Hit"
 dprime_temp3 <- rbind(dprime_temp_same,dprime_temp_different)
@@ -651,10 +629,10 @@ dprime_id_temp2 <- dprime_temp3 %>%
 dprime_id_temp2$stimulus <- "2-4"
 
 ### 3-5 ###
-dprime_temp_same <- subset(df4,df4$fname2=="3-3" | df4$fname2=="5-5")
+dprime_temp_same <- subset(df4,df4$discrim.token=="3-3" | df4$discrim.token=="5-5")
 dprime_temp_same <- ddply(dprime_temp_same,.(session,subject2),summarize,mean=mean(prop_incor))
 dprime_temp_same$condition <- "FA"
-dprime_temp_different <- subset(df4,df4$fname2=="3-5")
+dprime_temp_different <- subset(df4,df4$discrim.token=="3-5")
 dprime_temp_different <- ddply(dprime_temp_different,.(session,subject2),summarize,mean=mean(prop_cor))
 dprime_temp_different$condition <- "Hit"
 dprime_temp3 <- rbind(dprime_temp_same,dprime_temp_different)
@@ -671,10 +649,10 @@ dprime_id_temp3 <- dprime_temp3 %>%
 dprime_id_temp3$stimulus <- "3-5"
 
 ### 4-6 ###
-dprime_temp_same <- subset(df4,df4$fname2=="4-4" | df4$fname2=="6-6")
+dprime_temp_same <- subset(df4,df4$discrim.token=="4-4" | df4$discrim.token=="6-6")
 dprime_temp_same <- ddply(dprime_temp_same,.(session,subject2),summarize,mean=mean(prop_incor))
 dprime_temp_same$condition <- "FA"
-dprime_temp_different <- subset(df4,df4$fname2=="4-6")
+dprime_temp_different <- subset(df4,df4$discrim.token=="4-6")
 dprime_temp_different <- ddply(dprime_temp_different,.(session,subject2),summarize,mean=mean(prop_cor))
 dprime_temp_different$condition <- "Hit"
 dprime_temp3 <- rbind(dprime_temp_same,dprime_temp_different)
@@ -691,10 +669,10 @@ dprime_id_temp4 <- dprime_temp3 %>%
 dprime_id_temp4$stimulus <- "4-6"
 
 ### 5-7 ###
-dprime_temp_same <- subset(df4,df4$fname2=="5-5" | df4$fname2=="7-7")
+dprime_temp_same <- subset(df4,df4$discrim.token=="5-5" | df4$discrim.token=="7-7")
 dprime_temp_same <- ddply(dprime_temp_same,.(session,subject2),summarize,mean=mean(prop_incor))
 dprime_temp_same$condition <- "FA"
-dprime_temp_different <- subset(df4,df4$fname2=="5-7")
+dprime_temp_different <- subset(df4,df4$discrim.token=="5-7")
 dprime_temp_different <- ddply(dprime_temp_different,.(session,subject2),summarize,mean=mean(prop_cor))
 dprime_temp_different$condition <- "Hit"
 dprime_temp3 <- rbind(dprime_temp_same,dprime_temp_different)
@@ -722,7 +700,7 @@ ggplot(dprime_id,aes(x=stimulus,y=dprime)) +
   theme_dark() +
   theme(text = element_text(size=20))
 
-# lineplot
+# lineplot group average
 dprime_lineplot <- summarySE(dprime_id, measurevar="dprime",groupvars = c("session","stimulus"))
 
 ggplot(dprime_lineplot,aes(x=stimulus,y=dprime,group=session)) +
@@ -732,6 +710,18 @@ ggplot(dprime_lineplot,aes(x=stimulus,y=dprime,group=session)) +
   scale_color_brewer('Session',palette="Purples") +
   theme_dark() +
   theme(text = element_text(size=20))
+
+# lineplot by individual
+dprime_lineplot <- summarySE(dprime_id, measurevar="dprime",groupvars = c("session","stimulus","subject2"))
+
+ggplot(dprime_lineplot,aes(x=stimulus,y=dprime,group=session)) +
+  geom_point(aes(color=session),stat='summary', fun.y='mean', size=3.5) +
+  geom_line(aes(color=session),stat='summary', fun.y='mean', size=2) +
+  scale_color_brewer('Session',palette="Purples") +
+  facet_wrap(~subject2) +
+  theme_dark() +
+  theme(text = element_text(size=20))
+
 
 # lineplot with smoooth
 ggplot(dprime_id,aes(x=stimulus,y=dprime,group=session,fill=session)) +
@@ -754,7 +744,7 @@ ggplot(dprime_id_session3,aes(x=stimulus,y=dprime)) +
   theme(text = element_text(size=20))
 
 
-#### PHONETIC CATEGORIZATION ####
+#### PHONETIC CATEGORIZATION ANALYSIS ####
 
 # subset continuum data
 continuum <- subset(df,df$block=="continuum")
@@ -827,10 +817,74 @@ session.subject.curves <- quickpsy(readyforcurves, step, resp1,
                         guess = FALSE,
                         bootstrap = "nonparametric", 
                         optimization = "optim",
-                        B = 1000) 
+                        B = 1) 
+
+# mixed effects model
+# prep data
+continuum$step <- as.numeric(continuum$step)
+continuum$step <- scale(continuum$step)
+continuum$session <- as.factor(continuum$session)
+continuum$subject2 <- as.factor(continuum$subject2)
+
+# glmer model
+PC.model1 <- glmer(resp1 ~ step*session + (step:session||subject2) + (step||subject2) + (session||subject2),
+                  data=continuum, family='binomial',
+                  control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+
+PC.model2 <- glmer(resp1 ~ step*session + (step:session||subject2),
+                   data=continuum, family='binomial',
+                   control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+
+PC.model3 <- glmer(resp1 ~ step*session + (step||subject2) + (session||subject2),
+                   data=continuum, family='binomial',
+                   control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+
+PC.model4 <- glmer(resp1 ~ step*session + (1|subject2),
+                   data=continuum, family='binomial',
+                   control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+
+anova(PC.model1,PC.model2,PC.model3,PC.model4)
+summary(PC.model1)
+
+# afex model
+mixed(resp1 ~ step*session + (step*session||subject2) + (step||subject2) + (session||subject2), family=binomial(link="logit"),data=continuum,method="LRT")
 
 
-#### SINE SESSIONS ####
+#### VOWEL TRAINING ANALYSIS ####
+
+# separate out training blocks
+training <- subset(df,grepl("training",block))
+training <- subset(training,block!="training_sine")
+training <- subset(training,session!=4 & session!="S3")
+
+
+# prep data
+training$block <- as.factor(training$block)
+training$session <- as.factor(training$session)
+training$subject2 <- as.factor(training$subject2)
+training$trial <- scale(training$trial)
+
+training.model1 <- glmer(correct_response ~ block*session*trial + (block:session||subject2) +
+                           (block||subject2) + (session||subject2),
+                         data=training,family='binomial',
+                         control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+
+training.model2 <- glmer(correct_response ~ block*session*trial + (block:session||subject2),
+                         data=training,family='binomial',
+                         control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+
+training.model3 <- glmer(correct_response ~ block*session*trial +
+                           (block||subject2) + (session||subject2),
+                         data=training,family='binomial',
+                         control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+
+training.model4 <- glmer(correct_response ~ block*session*trial + (1|subject2),
+                         data=training,family='binomial',
+                         control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+
+anova(training.model1,training.model2,training.model3,training.model4)
+
+#### SINE SESSION ANALYSIS ####
 
 # create training performance figure with training sublock on the X axis and session as grouping variable
 
@@ -891,7 +945,7 @@ discrim_fig_data_sine <- subset(discrim_fig_data,session=="S3")
 discrim_fig_data_sine <- subset(discrim_fig_data_sine,grepl("posttest",block))
 
 # create variable to combine forwards/backwards discrimination steps
-discrim_fig_data_sine$fname2 <- ifelse(discrim_fig_data_sine$fname=="iyu_step_1-step_1.wav","1-1",
+discrim_fig_data_sine$discrim.token <- ifelse(discrim_fig_data_sine$fname=="iyu_step_1-step_1.wav","1-1",
                                         ifelse(discrim_fig_data_sine$fname=="iyu_step_2-step_2.wav","2-2",
                                                ifelse(discrim_fig_data_sine$fname=="iyu_step_3-step_3.wav","3-3",
                                                       ifelse(discrim_fig_data_sine$fname=="iyu_step_4-step_4.wav","4-4",
@@ -910,18 +964,18 @@ discrim_fig_data_sine$fname2 <- ifelse(discrim_fig_data_sine$fname=="iyu_step_1-
                                                                                                                                                  ifelse(discrim_fig_data_sine$fname=="iyu_step_7-step_5.wav","5-7",NA)))))))))))))))))
 
 
-discrim_fig_data_sine$condition <- ifelse(discrim_fig_data_sine$fname2=="1-1","same",
-                                           ifelse(discrim_fig_data_sine$fname2=="2-2","same",
-                                                  ifelse(discrim_fig_data_sine$fname2=="3-3","same",
-                                                         ifelse(discrim_fig_data_sine$fname2=="4-4","same",
-                                                                ifelse(discrim_fig_data_sine$fname2=="5-5","same",
-                                                                       ifelse(discrim_fig_data_sine$fname2=="6-6","same",
-                                                                              ifelse(discrim_fig_data_sine$fname2=="7-7","same",
-                                                                                     ifelse(discrim_fig_data_sine$fname2=="1-3","different",
-                                                                                            ifelse(discrim_fig_data_sine$fname2=="2-4","different",
-                                                                                                   ifelse(discrim_fig_data_sine$fname2=="3-5","different",
-                                                                                                          ifelse(discrim_fig_data_sine$fname2=="4-6","different",
-                                                                                                                 ifelse(discrim_fig_data_sine$fname2=="5-7","different",NA))))))))))))
+discrim_fig_data_sine$condition <- ifelse(discrim_fig_data_sine$discrim.token=="1-1","same",
+                                           ifelse(discrim_fig_data_sine$discrim.token=="2-2","same",
+                                                  ifelse(discrim_fig_data_sine$discrim.token=="3-3","same",
+                                                         ifelse(discrim_fig_data_sine$discrim.token=="4-4","same",
+                                                                ifelse(discrim_fig_data_sine$discrim.token=="5-5","same",
+                                                                       ifelse(discrim_fig_data_sine$discrim.token=="6-6","same",
+                                                                              ifelse(discrim_fig_data_sine$discrim.token=="7-7","same",
+                                                                                     ifelse(discrim_fig_data_sine$discrim.token=="1-3","different",
+                                                                                            ifelse(discrim_fig_data_sine$discrim.token=="2-4","different",
+                                                                                                   ifelse(discrim_fig_data_sine$discrim.token=="3-5","different",
+                                                                                                          ifelse(discrim_fig_data_sine$discrim.token=="4-6","different",
+                                                                                                                 ifelse(discrim_fig_data_sine$discrim.token=="5-7","different",NA))))))))))))
 
 ### calculate d' ###
 
@@ -978,7 +1032,7 @@ ggplot(dprime,aes(x=key,y=dprime)) +
 # make a new data frame that contains the data we need
 
 df4 <- discrim_fig_data_sine %>%
-  group_by(subject2,condition,fname2) %>%
+  group_by(subject2,condition,discrim.token) %>%
   summarize(prop_cor = mean(correct_response))
 
 df4 <- df4 %>% mutate(prop_incor=1-prop_cor)
@@ -1003,10 +1057,10 @@ df4$prop_incor <- cutoff_0(df4$prop_incor,.01)
 # make function for d', then apply it to each stimulus
 
 # 1-3 
-dprime_temp_same <- subset(df4,df4$fname2=="1-1" | df4$fname2=="3-3")
+dprime_temp_same <- subset(df4,df4$discrim.token=="1-1" | df4$discrim.token=="3-3")
 dprime_temp_same <- ddply(dprime_temp_same,.(subject2),summarize,mean=mean(prop_incor))
 dprime_temp_same$condition <- "FA"
-dprime_temp_different <- subset(df4,df4$fname2=="1-3")
+dprime_temp_different <- subset(df4,df4$discrim.token=="1-3")
 dprime_temp_different <- ddply(dprime_temp_different,.(subject2),summarize,mean=mean(prop_cor))
 dprime_temp_different$condition <- "Hit"
 dprime_temp3 <- rbind(dprime_temp_same,dprime_temp_different)
@@ -1023,10 +1077,10 @@ dprime_id_temp1 <- dprime_temp3 %>%
 dprime_id_temp1$stimulus <- "1-3"
 
 # 2-4
-dprime_temp_same <- subset(df4,df4$fname2=="2-2" | df4$fname2=="4-4")
+dprime_temp_same <- subset(df4,df4$discrim.token=="2-2" | df4$discrim.token=="4-4")
 dprime_temp_same <- ddply(dprime_temp_same,.(subject2),summarize,mean=mean(prop_incor))
 dprime_temp_same$condition <- "FA"
-dprime_temp_different <- subset(df4,df4$fname2=="2-4")
+dprime_temp_different <- subset(df4,df4$discrim.token=="2-4")
 dprime_temp_different <- ddply(dprime_temp_different,.(subject2),summarize,mean=mean(prop_cor))
 dprime_temp_different$condition <- "Hit"
 dprime_temp3 <- rbind(dprime_temp_same,dprime_temp_different)
@@ -1043,10 +1097,10 @@ dprime_id_temp2 <- dprime_temp3 %>%
 dprime_id_temp2$stimulus <- "2-4"
 
 # 3-5
-dprime_temp_same <- subset(df4,df4$fname2=="3-3" | df4$fname2=="5-5")
+dprime_temp_same <- subset(df4,df4$discrim.token=="3-3" | df4$discrim.token=="5-5")
 dprime_temp_same <- ddply(dprime_temp_same,.(subject2),summarize,mean=mean(prop_incor))
 dprime_temp_same$condition <- "FA"
-dprime_temp_different <- subset(df4,df4$fname2=="3-5")
+dprime_temp_different <- subset(df4,df4$discrim.token=="3-5")
 dprime_temp_different <- ddply(dprime_temp_different,.(subject2),summarize,mean=mean(prop_cor))
 dprime_temp_different$condition <- "Hit"
 dprime_temp3 <- rbind(dprime_temp_same,dprime_temp_different)
@@ -1063,10 +1117,10 @@ dprime_id_temp3 <- dprime_temp3 %>%
 dprime_id_temp3$stimulus <- "3-5"
 
 # 4-6
-dprime_temp_same <- subset(df4,df4$fname2=="4-4" | df4$fname2=="6-6")
+dprime_temp_same <- subset(df4,df4$discrim.token=="4-4" | df4$discrim.token=="6-6")
 dprime_temp_same <- ddply(dprime_temp_same,.(subject2),summarize,mean=mean(prop_incor))
 dprime_temp_same$condition <- "FA"
-dprime_temp_different <- subset(df4,df4$fname2=="4-6")
+dprime_temp_different <- subset(df4,df4$discrim.token=="4-6")
 dprime_temp_different <- ddply(dprime_temp_different,.(subject2),summarize,mean=mean(prop_cor))
 dprime_temp_different$condition <- "Hit"
 dprime_temp3 <- rbind(dprime_temp_same,dprime_temp_different)
@@ -1083,10 +1137,10 @@ dprime_id_temp4 <- dprime_temp3 %>%
 dprime_id_temp4$stimulus <- "4-6"
 
 # 5-7
-dprime_temp_same <- subset(df4,df4$fname2=="5-5" | df4$fname2=="7-7")
+dprime_temp_same <- subset(df4,df4$discrim.token=="5-5" | df4$discrim.token=="7-7")
 dprime_temp_same <- ddply(dprime_temp_same,.(subject2),summarize,mean=mean(prop_incor))
 dprime_temp_same$condition <- "FA"
-dprime_temp_different <- subset(df4,df4$fname2=="5-7")
+dprime_temp_different <- subset(df4,df4$discrim.token=="5-7")
 dprime_temp_different <- ddply(dprime_temp_different,.(subject2),summarize,mean=mean(prop_cor))
 dprime_temp_different$condition <- "Hit"
 dprime_temp3 <- rbind(dprime_temp_same,dprime_temp_different)
@@ -1146,20 +1200,20 @@ continuum_sine <- rbind(continuum_sineCB1,continuum_sineCB2)
 # create 'step' variable
 continuum_sine$step <- substr(continuum_sine$fname,9,9)
 
-stats_sine <- summarySE(continuum_sine, measurevar="resp1",groupvars = c("step"))
+stats_sine <- summarySE(continuum_sine, measurevar="resp1",groupvars = c("subject2","step"))
 
 ggplot(stats_sine, aes(x=as.numeric(step),y=resp1)) +
   geom_point(stat='summary', fun.y='mean', size=2.5,color="green") +
   geom_line(stat='summary', fun.y='mean', size=0.75,color="green") +
   geom_errorbar(aes(ymin=resp1-se,ymax=resp1+se),width=.5) +
-  #facet_wrap(~subject2) +
+  facet_wrap(~subject2) +
   scale_x_continuous('/i/ to /y/ continuum step', breaks=c(1:7)) +
   scale_y_continuous('Percent /y/ responses', breaks=c(0,0.25,0.5,0.75,1), labels=c(0,25,50,75,100)) +
   coord_cartesian(ylim=c(0,1)) + 
   theme_dark() +
   theme(text = element_text(size=20))
 
-#### MIXED EFFECTS MODELS ####
+#### MIXED EFFECTS MODELS FOR DISCRIMINATION ####
 
 # split data into vowel and sine
 vowel.mod.data <- subset(df,session!="S3")
@@ -1177,7 +1231,7 @@ vowel.mod.data$block.session <- ifelse(vowel.mod.data$block=="pretest_discrimina
 vowel.mod.data$block.session <- ifelse(vowel.mod.data$block=="posttest_discrimination" & vowel.mod.data$session==3,6,vowel.mod.data$block.session)
 
 ## create variable to combine forwards/backwards discrimination steps
-vowel.mod.data$fname2 <- ifelse(vowel.mod.data$fname=="i-y-u_step1-step1.wav","1-1",
+vowel.mod.data$discrim.token <- ifelse(vowel.mod.data$fname=="i-y-u_step1-step1.wav","1-1",
                                         ifelse(vowel.mod.data$fname=="i-y-u_step2-step2.wav","2-2",
                                                ifelse(vowel.mod.data$fname=="i-y-u_step3-step3.wav","3-3",
                                                       ifelse(vowel.mod.data$fname=="i-y-u_step4-step4.wav","4-4",
@@ -1196,29 +1250,33 @@ vowel.mod.data$fname2 <- ifelse(vowel.mod.data$fname=="i-y-u_step1-step1.wav","1
                                                                                                                                                  ifelse(vowel.mod.data$fname=="i-y-u_step_7-step_5.wav","5-7",NA)))))))))))))))))
 
 
-vowel.mod.data$discrim.condition <- ifelse(vowel.mod.data$fname2=="1-1","same",
-                                           ifelse(vowel.mod.data$fname2=="2-2","same",
-                                                  ifelse(vowel.mod.data$fname2=="3-3","same",
-                                                         ifelse(vowel.mod.data$fname2=="4-4","same",
-                                                                ifelse(vowel.mod.data$fname2=="5-5","same",
-                                                                       ifelse(vowel.mod.data$fname2=="6-6","same",
-                                                                              ifelse(vowel.mod.data$fname2=="7-7","same",
-                                                                                     ifelse(vowel.mod.data$fname2=="1-3","different",
-                                                                                            ifelse(vowel.mod.data$fname2=="2-4","different",
-                                                                                                   ifelse(vowel.mod.data$fname2=="3-5","different",
-                                                                                                          ifelse(vowel.mod.data$fname2=="4-6","different",
-                                                                                                                 ifelse(vowel.mod.data$fname2=="5-7","different",NA))))))))))))
+vowel.mod.data$discrim.condition <- ifelse(vowel.mod.data$discrim.token=="1-1","same",
+                                           ifelse(vowel.mod.data$discrim.token=="2-2","same",
+                                                  ifelse(vowel.mod.data$discrim.token=="3-3","same",
+                                                         ifelse(vowel.mod.data$discrim.token=="4-4","same",
+                                                                ifelse(vowel.mod.data$discrim.token=="5-5","same",
+                                                                       ifelse(vowel.mod.data$discrim.token=="6-6","same",
+                                                                              ifelse(vowel.mod.data$discrim.token=="7-7","same",
+                                                                                     ifelse(vowel.mod.data$discrim.token=="1-3","different",
+                                                                                            ifelse(vowel.mod.data$discrim.token=="2-4","different",
+                                                                                                   ifelse(vowel.mod.data$discrim.token=="3-5","different",
+                                                                                                          ifelse(vowel.mod.data$discrim.token=="4-6","different",
+                                                                                                                 ifelse(vowel.mod.data$discrim.token=="5-7","different",NA))))))))))))
 
 ## GLMM for % accuracy in discrimation ##
 
 # prep data
 vowel.mod.data <- subset(vowel.mod.data,discrim.condition=="different")
+
 vowel.mod.data$block.session <- as.factor(vowel.mod.data$block.session)
 contrasts(vowel.mod.data$block.session) = contr.sum(6)
 
+vowel.mod.data$discrim.token <- as.factor(vowel.mod.data$discrim.token)
+contrasts(vowel.mod.data$discrim.token) = contr.sum(5)
+
 # run models
 # run using afex to just get main effects and interaction
-afexmodel1 <- mixed(correct_response ~ block.session*fname2 + (1|subject2), family=binomial(link="logit"),data=vowel.mod.data,method="LRT")
+afexmodel1 <- mixed(correct_response ~ block.session*discrim.token + (1|subject2), family=binomial(link="logit"),data=vowel.mod.data,method="LRT")
 summary(afexmodel1)
 
 # run glmer to get simple effects
@@ -1232,7 +1290,7 @@ summary(model1)
 sine.mod.data <- subset(sine.mod.data,grepl("discrimination",block)==TRUE)
 
 ## create variable to combine forwards/backwards discrimination steps
-sine.mod.data$fname2 <- ifelse(sine.mod.data$fname=="iyu_step_1-step_1.wav","1-1",
+sine.mod.data$discrim.token <- ifelse(sine.mod.data$fname=="iyu_step_1-step_1.wav","1-1",
                                ifelse(sine.mod.data$fname=="iyu_step_2-step_2.wav","2-2",
                                       ifelse(sine.mod.data$fname=="iyu_step_3-step_3.wav","3-3",
                                              ifelse(sine.mod.data$fname=="iyu_step_4-step_4.wav","4-4",
@@ -1251,18 +1309,18 @@ sine.mod.data$fname2 <- ifelse(sine.mod.data$fname=="iyu_step_1-step_1.wav","1-1
                                                                                                                                         ifelse(sine.mod.data$fname=="iyu_step_7-step_5.wav","5-7",NA)))))))))))))))))
 
 
-sine.mod.data$discrim.condition <- ifelse(sine.mod.data$fname2=="1-1","same",
-                                          ifelse(sine.mod.data$fname2=="2-2","same",
-                                                 ifelse(sine.mod.data$fname2=="3-3","same",
-                                                        ifelse(sine.mod.data$fname2=="4-4","same",
-                                                               ifelse(sine.mod.data$fname2=="5-5","same",
-                                                                      ifelse(sine.mod.data$fname2=="6-6","same",
-                                                                             ifelse(sine.mod.data$fname2=="7-7","same",
-                                                                                    ifelse(sine.mod.data$fname2=="1-3","different",
-                                                                                           ifelse(sine.mod.data$fname2=="2-4","different",
-                                                                                                  ifelse(sine.mod.data$fname2=="3-5","different",
-                                                                                                         ifelse(sine.mod.data$fname2=="4-6","different",
-                                                                                                                ifelse(sine.mod.data$fname2=="5-7","different",NA))))))))))))
+sine.mod.data$discrim.condition <- ifelse(sine.mod.data$discrim.token=="1-1","same",
+                                          ifelse(sine.mod.data$discrim.token=="2-2","same",
+                                                 ifelse(sine.mod.data$discrim.token=="3-3","same",
+                                                        ifelse(sine.mod.data$discrim.token=="4-4","same",
+                                                               ifelse(sine.mod.data$discrim.token=="5-5","same",
+                                                                      ifelse(sine.mod.data$discrim.token=="6-6","same",
+                                                                             ifelse(sine.mod.data$discrim.token=="7-7","same",
+                                                                                    ifelse(sine.mod.data$discrim.token=="1-3","different",
+                                                                                           ifelse(sine.mod.data$discrim.token=="2-4","different",
+                                                                                                  ifelse(sine.mod.data$discrim.token=="3-5","different",
+                                                                                                         ifelse(sine.mod.data$discrim.token=="4-6","different",
+                                                                                                                ifelse(sine.mod.data$discrim.token=="5-7","different",NA))))))))))))
 
 ## GLMM for % accuracy in discrimation ##
 # prep data
@@ -1275,3 +1333,4 @@ sine.model1 <- glmer(correct_response ~ block + (block|subject2),
                 data=sine.mod.data, family='binomial',
                 control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 1500000)))
 summary(sine.model1)
+
