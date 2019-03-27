@@ -28,13 +28,9 @@ Linear mixed effects model (`3dLME`) serves as compliment to ANOVA but allows fo
 
 *Potential LME analyses*:
 
-`VowelvsSine-dprime` - using d' from 	discrimination performance
+`VowelvsSine-dprime` - using d' from discrimination performance
 
-`BoundaryvsSine-dprime`
-
-`AvsB-dprime`
-
-`AvsB-slope` - using slope of participant's categorization function, more categorical people might show larger separation between categories
+`BoundaryvsEndpoint-dprime`
 
 ## Multivariate fMRI
 
@@ -52,7 +48,7 @@ T-test's (`3dttest++`) used to test accuracy-chance maps against 0. Current T-te
 
 1. **AvsB - Vowel**
 2. **AvsB - Sine**
-3. **Paired T-test: AvsB Vowel-Sine** - looks at what regions are responsible for classifying category membership independent of whether it was natural or sine
+3. **Paired T-test: AvsB Vowel-Sine** - looks for regions that show greater decoding sensitivity for vowels 
 
 ***Potential MVPA Analyses***
 
@@ -106,17 +102,25 @@ data=dprime.anova.data
 
 ### Phonetic Categorization
 
+Use mixed effects model (`glmer`) to look at how phonetic categorization changes over the course of the three sessions.
+
+```
+PC.model1 <- glmer(resp1 ~ step*session + 
+(step:session||subject2) + 
+(step||subject2) + (session||subject2)                 
+```
+*step* - continuous variable that codes for continuum step
+*session* - categorixal variable that codes for session number
+
 ### Training
 
 **Mixed effects model on % accuracy for training tasks:**
 
-`glmer(correct_response ~ block*session*trial_num + (level*session|subject2)`
+`glmer(correct_response ~ block*session*trial_num + (block:session|subject2)`
 
 *block* - within-subjects variable that codes for which level of training
 
 *session* - within-subjects variable that codes for session number
-
-*trial_num* - between-subjects continuous variable reflecting how many trials overall the person completed in training
 
 
 
