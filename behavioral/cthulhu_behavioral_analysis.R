@@ -30,21 +30,22 @@ for (i in file_names) {
   df <- rbind(df, data)
 }
 
-# split by session 
-session1 <- subset(df,session == 1)
-session2 <- subset(df,session == 2)
-session3 <- subset(df,session == 3)
-session4 <- subset(df,session == 4)
-sine <- subset(df,session == "S3")
-
 # various housekeeping things
 df$correct_response <- as.numeric(df$correct_response)
 df$trial <- as.numeric(df$trial)
 df$rt <- as.numeric(df$rt)
 # chop off session indicator numbers to get base subject number
 df$subject2 <- ifelse(nchar(df$subject)==3,substr(df$subject,1,1),substr(df$subject,1,2))
+df$subject2 <- as.numeric(df$subject2)
 
 #### SESSION 1 DESCRIPTIVES ####
+
+# split by session 
+session1 <- subset(df,session == 1)
+session2 <- subset(df,session == 2)
+session3 <- subset(df,session == 3)
+session4 <- subset(df,session == 4)
+sine <- subset(df,session == "S3")
 
 # split by block for session1
 pretest1 <- subset(session1,block == "pretest_discrimination")
@@ -690,15 +691,15 @@ dprime_id_temp5$stimulus <- "5-7"
 
 dprime_id <- data.frame()
 dprime_id <- rbind(dprime_id_temp1,dprime_id_temp2,dprime_id_temp3,dprime_id_temp4,dprime_id_temp4,dprime_id_temp5)
-
+rm(dprime_temp3,dprime_temp_same,dprime_temp_different,dprime_id_temp1,dprime_id_temp2,dprime_id_temp3,dprime_id_temp4,dprime_id_temp4,dprime_id_temp5)
 
 # create dprime by stimulus figure 
 # boxplot
-ggplot(dprime_id,aes(x=stimulus,y=dprime)) + 
-  geom_boxplot(position="dodge",aes(fill=session)) +
-  scale_fill_brewer('Session #',palette = "Purples") +
-  theme_dark() +
-  theme(text = element_text(size=20))
+# ggplot(dprime_id,aes(x=stimulus,y=dprime)) + 
+#   geom_boxplot(position="dodge",aes(fill=session)) +
+#   scale_fill_brewer('Session #',palette = "Purples") +
+#   theme_dark() +
+#   theme(text = element_text(size=20))
 
 # lineplot group average
 dprime_lineplot <- summarySE(dprime_id, measurevar="dprime",groupvars = c("session","stimulus"))
@@ -712,9 +713,7 @@ ggplot(dprime_lineplot,aes(x=stimulus,y=dprime,group=session)) +
   theme(text = element_text(size=20))
 
 # lineplot by individual
-dprime_lineplot <- summarySE(dprime_id, measurevar="dprime",groupvars = c("session","stimulus","subject2"))
-
-ggplot(dprime_lineplot,aes(x=stimulus,y=dprime,group=session)) +
+ggplot(dprime_id,aes(x=stimulus,y=dprime,group=session)) +
   geom_point(aes(color=session),stat='summary', fun.y='mean', size=3.5) +
   geom_line(aes(color=session),stat='summary', fun.y='mean', size=2) +
   scale_color_brewer('Session',palette="Purples") +
@@ -722,15 +721,18 @@ ggplot(dprime_lineplot,aes(x=stimulus,y=dprime,group=session)) +
   theme_dark() +
   theme(text = element_text(size=20))
 
+# find peak discrimination token for each participant
+peak.discrim <- dprime_id %>% group_by(subject2) %>% slice(which.max(dprime))
+peak.discrim <- select(peak.discrim,"session","subject2","dprime","stimulus")
 
-# lineplot with smoooth
-ggplot(dprime_id,aes(x=stimulus,y=dprime,group=session,fill=session)) +
-  geom_point(aes(color=session),stat='summary', fun.y='mean', size=3) +
-  geom_smooth(aes(color=session)) +
-  scale_color_brewer('Session',palette="Purples") +
-  scale_fill_brewer('Session',palette="Purples") +
-  theme_dark() +
-  theme(text = element_text(size=20))
+# # lineplot with smoooth
+# ggplot(dprime_id,aes(x=stimulus,y=dprime,group=session,fill=session)) +
+#   geom_point(aes(color=session),stat='summary', fun.y='mean', size=3) +
+#   geom_smooth(aes(color=session)) +
+#   scale_color_brewer('Session',palette="Purples") +
+#   scale_fill_brewer('Session',palette="Purples") +
+#   theme_dark() +
+#   theme(text = element_text(size=20))
 
   
 # create dprime by stimulus figure for session 3 to compare to sine
@@ -804,20 +806,20 @@ ggplot(stats_vowel, aes(x=as.numeric(step),y=resp1)) +
   theme_dark() +
   theme(text = element_text(size=20))
 
-# fit curves using quickpsy
-readyforcurves <- subset(continuum,subject2!=10)
+# fit curves for session 3 using quickpsy for MVPA
+readyforcurves <- subset(continuum,session==3)
 readyforcurves$session <- as.numeric(readyforcurves$session)
 readyforcurves$subject2 <- as.numeric(readyforcurves$subject2)
 readyforcurves$step <- as.numeric(readyforcurves$step)
 readyforcurves <- na.omit(readyforcurves)
-session.subject.curves <- quickpsy(readyforcurves, step, resp1, 
-                        grouping = .(subject2), 
-                        fun = logistic_fun,
-                        lapses = FALSE, 
-                        guess = FALSE,
-                        bootstrap = "nonparametric", 
-                        optimization = "optim",
-                        B = 1) 
+mvpa.subject.curves <- quickpsy(readyforcurves, step, resp1, 
+                          grouping = .(subject2), 
+                          fun = logistic_fun,
+                          lapses = FALSE, 
+                          guess = FALSE,
+                          bootstrap = "nonparametric", 
+                          optimization = "optim",
+                          B = 1000)
 
 # mixed effects model
 # prep data
