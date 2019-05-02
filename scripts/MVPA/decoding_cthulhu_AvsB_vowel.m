@@ -13,7 +13,7 @@
 clear; 
 dir_base = '/Volumes/netapp/Myerslab/Dave/Cthulhu/data/';
 
-subjects = {'34'};
+subjects = {'1'};
 subIndsToProcess = 1:length(subjects);
 
 for s = subIndsToProcess
@@ -37,7 +37,7 @@ cfg.scale.estimation = 'all';
 % cfg.decoding.train.classification_kernel.model_parameters = '-s 0 -t 4 -c 0.001 -b 0 -q';
 
 % Set the output directory where data will be saved, e.g. 'c:\exp\results\buttonpress'
-cfg.results.dir = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvpa/searchlight/AvsB_vowel'];
+cfg.results.dir = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvpa/searchlight/AvsB_vowel-relative'];
 
 % Set the full path to the files where your coefficients for each run are stored e.g. 
 % {'/misc/data/mystudy/results1+orig.BRIK','/misc/data/mystudy/results2+orig.BRIK',...}

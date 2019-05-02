@@ -14,6 +14,7 @@ library(scales)
 library(gdata)
 library(quickpsy)
 library(afex)
+library(ggrepel)
 source("https://raw.githubusercontent.com/janhove/janhove.github.io/master/RCode/sortLvls.R")
 theme_set(theme_bw())
 
@@ -255,11 +256,11 @@ training3.3 <- subset(session3,block == "training3")
 continuum3 <- subset(session3,block == "continuum")
 
 # summarize performance by subject
-pretest3_performance = ddply(pretest3,.(subject),summarize,mean=mean(correct_response))
-posttest3_performance = ddply(posttest3,.(subject),summarize,mean=mean(correct_response))
-training3.1_performance = ddply(training3.1,.(subject),summarize,mean=mean(correct_response))
-training3.2_performance = ddply(training3.2,.(subject),summarize,mean=mean(correct_response))
-training3.3_performance = ddply(training3.3,.(subject),summarize,mean=mean(correct_response))
+pretest3_performance = ddply(pretest3,.(subject2),summarize,mean=mean(correct_response))
+posttest3_performance = ddply(posttest3,.(subject2),summarize,mean=mean(correct_response))
+training3.1_performance = ddply(training3.1,.(subject2),summarize,mean=mean(correct_response))
+training3.2_performance = ddply(training3.2,.(subject2),summarize,mean=mean(correct_response))
+training3.3_performance = ddply(training3.3,.(subject2),summarize,mean=mean(correct_response))
 
 # create pretest performance figure
 pretest3$discrim.token <- ifelse(pretest3$fname=="i-y-u_step1-step1.wav","1-1",NA)
@@ -372,7 +373,7 @@ training_sine.2_performance = ddply(training_sine.2,.(subject),summarize,mean=me
 training_sine.3_performance = ddply(training_sine.3,.(subject),summarize,mean=mean(correct_response))
 
 
-# TRAINING DESCRIPTIVES ####
+# TRAINING DESCRIPTIVES & ANALYSIS ####
 
 # separate training data
 training <- subset(df,grepl("training",block))
@@ -404,6 +405,7 @@ ggplot(training.stats,aes(x=block,y=correct_response)) +
 
 # overlay individual data points and group mean bars
 id <- ddply(training.stats,.(subject2,block,session,blocks.complete),summarize,mean=mean(correct_response))
+stats <- summarySE(data=training.stats, measurevar="correct_response",groupvars=c("block","session"))
 gd <- select(stats,block,session,correct_response)
 gd <- rename(gd,mean=correct_response)
 
@@ -419,21 +421,63 @@ ggplot(id,aes(x=block,y=mean)) +
   coord_cartesian(ylim=c(0.4,1)) +
   theme(text=element_text(size=20))
 
-# collapse session
-stats2 <- summarySE(data=training_figure_data_vowel, measurevar="correct_response",groupvars=c("block"))
-id2 <- ddply(training_figure_data_vowel,.(block,subject2),summarize,mean=mean(correct_response))
-gd2 <- select(stats2,block,correct_response)
-gd2<- rename(gd2,mean=correct_response)
+# # collapse session
+# stats2 <- summarySE(data=training_figure_data_vowel, measurevar="correct_response",groupvars=c("block"))
+# id2 <- ddply(training_figure_data_vowel,.(block,subject2),summarize,mean=mean(correct_response))
+# gd2 <- select(stats2,block,correct_response)
+# gd2<- rename(gd2,mean=correct_response)
+# 
+# ggplot(id2,aes(x=block,y=mean)) +
+#   geom_point(aes(x=block),position = position_dodge(width=0.75)) + geom_bar(data=gd2,aes(fill=block),stat="identity",position="dodge",alpha=0.3) +
+#   scale_y_continuous('Percent accuracy',breaks=c(0,0.25,0.5,0.75,1),labels=c(0,25,50,75,100)) +
+#   scale_x_discrete('Training level',labels=c('Easy 1-7','Medium 2-6','Hard 3-5')) +
+#   coord_cartesian(ylim=c(0.4,1)) +
+#   scale_fill_manual('Block',labels=c("1","2","3"),values=c("purple","purple","purple")) +
+#   guides(fill=FALSE) +
+#   theme_dark() +
+#   theme(text=element_text(size=20))
 
-ggplot(id2,aes(x=block,y=mean)) +
-  geom_point(aes(x=block),position = position_dodge(width=0.75)) + geom_bar(data=gd2,aes(fill=block),stat="identity",position="dodge",alpha=0.3) +
-  scale_y_continuous('Percent accuracy',breaks=c(0,0.25,0.5,0.75,1),labels=c(0,25,50,75,100)) +
-  scale_x_discrete('Training level',labels=c('Easy 1-7','Medium 2-6','Hard 3-5')) +
-  coord_cartesian(ylim=c(0.4,1)) +
-  scale_fill_manual('Block',labels=c("1","2","3"),values=c("purple","purple","purple")) +
-  guides(fill=FALSE) +
-  theme_dark() +
-  theme(text=element_text(size=20))
+# mixed effects model
+training.vowel$block <- as.factor(training.vowel$block)
+training.vowel$session <- as.factor(training.vowel$session)
+training.vowel$subject2 <- as.factor(training.vowel$subject2)
+
+# add number of completed blocks to the training data
+for (i in unique(training.vowel$block)){
+  for (s in unique(training.vowel$session)){
+    for (f in unique(training.vowel$subject2)){
+      blocklength <- length(which(training.vowel$block==i&training.vowel$session==s&training.vowel$subject2==f))
+      training.vowel$blocks.complete <- ifelse(training.vowel$block==i&training.vowel$session==s&training.vowel$subject2==f&blocklength<62,1,
+                                         ifelse(training.vowel$block==i&training.vowel$session==s&training.vowel$subject2==f&blocklength>61&blocklength<120,2,
+                                                ifelse(training.vowel$block==i&training.vowel$session==s&training.vowel$subject2==f&blocklength>120&blocklength<182,3,
+                                                       training.vowel$blocks.complete)))
+    }
+  }
+}
+training$blocks.complete <- as.factor(training$blocks.complete)
+
+training.model1 <- glmer(correct_response ~ block*session + (block:session||subject2) +
+                           (block||subject2) + (session||subject2),
+                         data=training.vowel,family='binomial',
+                         control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 100000)))
+
+training.model2 <- glmer(correct_response ~ block*session + (block:session||subject2),
+                         data=training.vowel,family='binomial',
+                         control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 100000)))
+
+training.model3 <- glmer(correct_response ~ block*session +
+                           (block||subject2) + (session||subject2),
+                         data=training.vowel,family='binomial',
+                         control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 100000)))
+
+training.model4 <- glmer(correct_response ~ block*session + (1|subject2),
+                         data=training.vowel,family='binomial',
+                         control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 100000)))
+
+afex.training.model <- mixed(correct_response ~ block*session + (1|subject2), family=binomial(link="logit"),data=training.vowel,method="LRT")
+
+anova(training.model1,training.model2,training.model3,training.model4)
+summary(training.model3)
 
 # CALCULATING D' FOR VOWEL DISCRIM ####
 
@@ -445,9 +489,6 @@ discrim <- subset(discrim,session!=4)
 
 # subset vowel
 discrim.vowel <- subset(discrim,session!="S3")
-
-# subset only post-test
-discrim.vowel <- subset(discrim.vowel,grepl("posttest",block))
 
 # create variable to combine forwards/backwards discrimination steps
 discrim.vowel$discrim.token <- ifelse(discrim.vowel$fname=="i-y-u_step1-step1.wav","1-1",
@@ -482,6 +523,9 @@ discrim.vowel$condition <- ifelse(discrim.vowel$discrim.token=="1-1","same",
                            ifelse(discrim.vowel$discrim.token=="4-6","different",
                            ifelse(discrim.vowel$discrim.token=="5-7","different",NA))))))))))))
 
+# subset only post-test
+# discrim.vowel.pretest <- subset(discrim.vowel,grepl("pretest",block))
+# discrim.vowel <- subset(discrim.vowel,grepl("posttest",block))
 
   # d’ averaging across stimuli ======
 
@@ -552,7 +596,7 @@ ggplot(dprime,aes(x=Session,y=dprime)) +
 # make a new data frame that contains the data we need
 
 dprime.stimulus <- discrim.vowel %>%
-  group_by(session,subject2,condition,discrim.token) %>%
+  group_by(session,subject2,condition,discrim.token,block) %>%
   summarize(prop_cor = mean(correct_response))
 
 dprime.stimulus <- dprime.stimulus %>% mutate(prop_incor=1-prop_cor)
@@ -576,10 +620,10 @@ dprime.stimulus$prop_incor <- cutoff_0(dprime.stimulus$prop_incor,.01)
 
 ### 1-3 ###
 dprime_temp_same <- subset(dprime.stimulus,dprime.stimulus$discrim.token=="1-1" | dprime.stimulus$discrim.token=="3-3")
-dprime_temp_same <- ddply(dprime_temp_same,.(session,subject2),summarize,mean=mean(prop_incor))
+dprime_temp_same <- ddply(dprime_temp_same,.(session,subject2,block),summarize,mean=mean(prop_incor))
 dprime_temp_same$condition <- "FA"
 dprime_temp_different <- subset(dprime.stimulus,dprime.stimulus$discrim.token=="1-3")
-dprime_temp_different <- ddply(dprime_temp_different,.(session,subject2),summarize,mean=mean(prop_cor))
+dprime_temp_different <- ddply(dprime_temp_different,.(session,subject2,block),summarize,mean=mean(prop_cor))
 dprime_temp_different$condition <- "Hit"
 dprime_temp1_3 <- rbind(dprime_temp_same,dprime_temp_different)
   
@@ -590,16 +634,16 @@ d_prime <- function(Hit,FA){
 dprime_temp1_3 <- spread(dprime_temp1_3, condition, mean)
 
 dprime_temp1_3 <- dprime_temp1_3 %>%
-  group_by(session,subject2) %>%
+  group_by(session,subject2,block) %>%
   mutate(dprime = d_prime(Hit,FA))
 dprime_temp1_3$stimulus <- "1-3"
 
 ### 2-4 ###
 dprime_temp_same <- subset(dprime.stimulus,dprime.stimulus$discrim.token=="2-2" | dprime.stimulus$discrim.token=="4-4")
-dprime_temp_same <- ddply(dprime_temp_same,.(session,subject2),summarize,mean=mean(prop_incor))
+dprime_temp_same <- ddply(dprime_temp_same,.(session,subject2,block),summarize,mean=mean(prop_incor))
 dprime_temp_same$condition <- "FA"
 dprime_temp_different <- subset(dprime.stimulus,dprime.stimulus$discrim.token=="2-4")
-dprime_temp_different <- ddply(dprime_temp_different,.(session,subject2),summarize,mean=mean(prop_cor))
+dprime_temp_different <- ddply(dprime_temp_different,.(session,subject2,block),summarize,mean=mean(prop_cor))
 dprime_temp_different$condition <- "Hit"
 dprime_temp2_4 <- rbind(dprime_temp_same,dprime_temp_different)
 
@@ -610,16 +654,16 @@ d_prime <- function(Hit,FA){
 dprime_temp2_4 <- spread(dprime_temp2_4, condition, mean)
 
 dprime_temp2_4 <- dprime_temp2_4 %>%
-  group_by(session,subject2) %>%
+  group_by(session,subject2,block) %>%
   mutate(dprime = d_prime(Hit,FA))
 dprime_temp2_4$stimulus <- "2-4"
 
 ### 3-5 ###
 dprime_temp_same <- subset(dprime.stimulus,dprime.stimulus$discrim.token=="3-3" | dprime.stimulus$discrim.token=="5-5")
-dprime_temp_same <- ddply(dprime_temp_same,.(session,subject2),summarize,mean=mean(prop_incor))
+dprime_temp_same <- ddply(dprime_temp_same,.(session,subject2,block),summarize,mean=mean(prop_incor))
 dprime_temp_same$condition <- "FA"
 dprime_temp_different <- subset(dprime.stimulus,dprime.stimulus$discrim.token=="3-5")
-dprime_temp_different <- ddply(dprime_temp_different,.(session,subject2),summarize,mean=mean(prop_cor))
+dprime_temp_different <- ddply(dprime_temp_different,.(session,subject2,block),summarize,mean=mean(prop_cor))
 dprime_temp_different$condition <- "Hit"
 dprime_temp3_5 <- rbind(dprime_temp_same,dprime_temp_different)
 
@@ -630,16 +674,16 @@ d_prime <- function(Hit,FA){
 dprime_temp3_5 <- spread(dprime_temp3_5, condition, mean)
 
 dprime_temp3_5 <- dprime_temp3_5 %>%
-  group_by(session,subject2) %>%
+  group_by(session,subject2,block) %>%
   mutate(dprime = d_prime(Hit,FA))
 dprime_temp3_5$stimulus <- "3-5"
 
 ### 4-6 ###
 dprime_temp_same <- subset(dprime.stimulus,dprime.stimulus$discrim.token=="4-4" | dprime.stimulus$discrim.token=="6-6")
-dprime_temp_same <- ddply(dprime_temp_same,.(session,subject2),summarize,mean=mean(prop_incor))
+dprime_temp_same <- ddply(dprime_temp_same,.(session,subject2,block),summarize,mean=mean(prop_incor))
 dprime_temp_same$condition <- "FA"
 dprime_temp_different <- subset(dprime.stimulus,dprime.stimulus$discrim.token=="4-6")
-dprime_temp_different <- ddply(dprime_temp_different,.(session,subject2),summarize,mean=mean(prop_cor))
+dprime_temp_different <- ddply(dprime_temp_different,.(session,subject2,block),summarize,mean=mean(prop_cor))
 dprime_temp_different$condition <- "Hit"
 dprime_temp4_6 <- rbind(dprime_temp_same,dprime_temp_different)
 
@@ -650,16 +694,16 @@ d_prime <- function(Hit,FA){
 dprime_temp4_6 <- spread(dprime_temp4_6, condition, mean)
 
 dprime_temp4_6 <- dprime_temp4_6 %>%
-  group_by(session,subject2) %>%
+  group_by(session,subject2,block) %>%
   mutate(dprime = d_prime(Hit,FA))
 dprime_temp4_6$stimulus <- "4-6"
 
 ### 5-7 ###
 dprime_temp_same <- subset(dprime.stimulus,dprime.stimulus$discrim.token=="5-5" | dprime.stimulus$discrim.token=="7-7")
-dprime_temp_same <- ddply(dprime_temp_same,.(session,subject2),summarize,mean=mean(prop_incor))
+dprime_temp_same <- ddply(dprime_temp_same,.(session,subject2,block),summarize,mean=mean(prop_incor))
 dprime_temp_same$condition <- "FA"
 dprime_temp_different <- subset(dprime.stimulus,dprime.stimulus$discrim.token=="5-7")
-dprime_temp_different <- ddply(dprime_temp_different,.(session,subject2),summarize,mean=mean(prop_cor))
+dprime_temp_different <- ddply(dprime_temp_different,.(session,subject2,block),summarize,mean=mean(prop_cor))
 dprime_temp_different$condition <- "Hit"
 dprime_temp5_7 <- rbind(dprime_temp_same,dprime_temp_different)
 
@@ -670,7 +714,7 @@ d_prime <- function(Hit,FA){
 dprime_temp5_7 <- spread(dprime_temp5_7, condition, mean)
 
 dprime_temp5_7 <- dprime_temp5_7 %>%
-  group_by(session,subject2) %>%
+  group_by(session,subject2,block) %>%
   mutate(dprime = d_prime(Hit,FA))
 dprime_temp5_7$stimulus <- "5-7"
 
@@ -687,14 +731,21 @@ rm(dprime_temp_same,dprime_temp_different,dprime_temp1_3,dprime_temp2_4,dprime_t
 #   theme(text = element_text(size=20))
 
 # lineplot group average
-dprime_lineplot <- summarySE(dprime_id, measurevar="dprime",groupvars = c("session","stimulus"))
-
-ggplot(dprime_lineplot,aes(x=stimulus,y=dprime,group=session)) +
+dprime_lineplot <- summarySE(dprime_id, measurevar="dprime",groupvars = c("session","stimulus","block"))
+dprime_lineplot$plotting <- ifelse(dprime_lineplot$session==1&dprime_lineplot$block=="pretest_discrimination",1,
+                                   ifelse(dprime_lineplot$session==2&dprime_lineplot$block=="pretest_discrimination",2,
+                                          ifelse(dprime_lineplot$session==3&dprime_lineplot$block=="pretest_discrimination",3,
+                                                 ifelse(dprime_lineplot$session==1&dprime_lineplot$block=="posttest_discrimination",4,
+                                                        ifelse(dprime_lineplot$session==2&dprime_lineplot$block=="posttest_discrimination",5,
+                                                               ifelse(dprime_lineplot$session==3&dprime_lineplot$block=="posttest_discrimination",6,""))))))
+                                                                      
+                                                               
+ggplot(dprime_lineplot,aes(x=stimulus,y=dprime,group=plotting,color=session)) +
   geom_point(aes(color=session),stat='summary', fun.y='mean', size=3.5) +
-  geom_line(aes(color=session),stat='summary', fun.y='mean', size=2) +
+  geom_line(aes(color=session,linetype=block),stat='summary', fun.y='mean', size=2) +
   geom_errorbar(aes(ymin=dprime-se,ymax=dprime+se,color=session),width=.25,size=1.25) +
-  scale_color_brewer('Session',palette="Purples") +
-  theme_dark() +
+  scale_color_brewer('Session',palette="Set1") +
+  scale_linetype_discrete('Block',labels=c("Post-test","Pre-test")) +
   theme(text = element_text(size=20))
 
 # lineplot by individual
@@ -707,19 +758,41 @@ ggplot(dprime_id,aes(x=stimulus,y=dprime,group=session)) +
   theme(text = element_text(size=20))
 
   # find peak discrimination token for each participant =====
-peak.discrim <- dprime_id %>% group_by(subject2,session) %>% slice(which.max(dprime))
-peak.discrim <- select(peak.discrim,"session","subject2","dprime","stimulus")
-
+peak.discrim <- dprime_id %>% group_by(subject2,session,block) %>% slice(which.max(dprime))
+peak.discrim <- select(peak.discrim,"session","subject2","dprime","stimulus","block")
+# peak discrim for use as MRI regressor
+peak.discrim.regressor <- dprime_id %>% group_by(subject2,session) %>% slice(which.max(dprime))
+peak.discrim.regressor <- subset(peak.discrim.regressor,session==3)
+peak.discrim.regressor <- select(peak.discrim.regressor,"subject2","dprime")
 # combine with category boundaries
 load("boundaries.Rda")
+
+# create figure before rounding boundaries
+ggplot(boundaries,aes(x=session,y=Boundary,group=factor(subject2)),label=subject2) + 
+  geom_point(size=3) +
+  geom_line(aes(group=factor(subject2),color=factor(subject2)),size=1.5) +
+  geom_label_repel(label=boundaries$subject2) +
+  scale_color_discrete(guide=F) +
+  ylim(0,7) +
+  theme(text = element_text(size=20))
+
+# mixed effects model
+bound.model <- mixed(Boundary ~ session + (1|subject2),data=boundaries)
+bound.model
+
+# round boundaries
+boundaries <- boundaries[rep(1:nrow(boundaries),2),]
+boundaries$block[1:78] <- "pretest_discrimination"
+boundaries$block[1.1:78.1] <- "posttest_discrimination"
 boundaries$Boundary <- round(boundaries$Boundary)
 
 # look at peak discrim token and boundaries
 peak.discrim$boundary <- boundaries$Boundary
 peak.discrim <- subset(peak.discrim,boundary!=-8)
-ggplot(peak.discrim,aes(x=stimulus,y=boundary,color=stimulus,label=subject2)) + 
-  geom_jitter(size=2) + scale_y_continuous('boundary',breaks=c(0:7)) +
-  xlab('Peak discrimination stimulus') + geom_label_repel(aes(label=subject2))
+ggplot(peak.discrim,aes(x=stimulus,y=boundary,color=session,label=subject2)) + 
+  scale_y_continuous('boundary') +
+  ylim(0,7) + xlab('Peak discrimination stimulus') + geom_label_repel(aes(label=subject2,color=session)) +
+  theme(text = element_text(size=20))
 
 # use this information to determine what is between-category and what is within-category
 dprime_id$boundary <- NA
@@ -730,8 +803,9 @@ for (i in unique(dprime_id$subject2)){
   }
 }
 
-dprime_id$discrim.type <- ifelse(dprime_id$boundary==0&dprime_id$stimulus=="1-3","BC","WC")
-dprime_id$discrim.type <- ifelse(dprime_id$boundary==1&dprime_id$stimulus=="1-3","BC","WC")
+dprime_id$discrim.type <- ifelse(dprime_id$boundary==0&dprime_id$stimulus=="3-5","BC","WC")
+dprime_id$discrim.type <- ifelse(dprime_id$boundary==-8&dprime_id$stimulus=="3-5","BC",dprime_id$discrim.type)
+dprime_id$discrim.type <- ifelse(dprime_id$boundary==1&dprime_id$stimulus=="1-3","BC",dprime_id$discrim.type)
 dprime_id$discrim.type <- ifelse(dprime_id$boundary==2&dprime_id$stimulus=="1-3","BC",dprime_id$discrim.type)
 dprime_id$discrim.type <- ifelse(dprime_id$boundary==3&dprime_id$stimulus=="2-4","BC",dprime_id$discrim.type)
 dprime_id$discrim.type <- ifelse(dprime_id$boundary==4&dprime_id$stimulus=="3-5","BC",dprime_id$discrim.type)
@@ -750,13 +824,6 @@ BC.dprime.day3 <- subset(dprime_id,session==3 & discrim.type=="BC")
 WC.dprime.day3 <- subset(dprime_id,session==3 & discrim.type=="WC")
 WC.dprime.day3 <- ddply(WC.dprime.day3,.(subject2),summarize,dprime=mean(dprime))
 
-# run ANOVA on d'
-dprime_id$session <- as.factor(dprime_id$session)
-dprime_id$discrim.type <- as.factor(dprime_id$discrim.type)
-contrasts(dprime_id$discrim.type) = contr.sum(2)
-dprime.model1 <- mixed(dprime ~ discrim.type*session + (1|subject2),data=dprime_id,method="LRT")
-summary(dprime.model1)
-
 # # create dprime by stimulus figure for session 3 to compare to sine
 # dprime_id_session3 <- subset(dprime_id,session==3)
 # ggplot(dprime_id_session3,aes(x=stimulus,y=dprime)) + 
@@ -766,6 +833,137 @@ summary(dprime.model1)
 #   guides(fill=FALSE) +
 #   theme_dark() +
 #   theme(text = element_text(size=20))
+
+# create figure where discrim tokens are labeled relative to the individuals boundary
+dprime.relative.bound <- data.frame(matrix(vector(), 0, 10,
+                                           dimnames=list(c(),c("session","subject2","block", "FA", "Hit","dprime",
+                                                               "stimulus","boundary","discrim.type","relative.bound"))))
+
+for (subj in unique(dprime_id$subject2)){
+  for(ses in unique(dprime_id$session)){
+    temp <- subset(dprime_id,subject2==subj&session==ses)
+    B.C. = dprime_id[dprime_id$subject2==subj&dprime_id$discrim.type=="BC"&dprime_id$session==ses,"stimulus"]
+    if (B.C.[1,1]=="1-3"){
+      temp$relative.bound <- ifelse(temp$stimulus=="1-3"&temp$discrim.type=="BC","BC",
+                                       ifelse(temp$stimulus=="2-4"&temp$discrim.type=="WC","WC+1",
+                                              ifelse(temp$stimulus=="3-5"&temp$discrim.type=="WC","WC+2",
+                                                     ifelse(temp$stimulus=="4-6"&temp$discrim.type=="WC","WC+3",
+                                                            ifelse(temp$stimulus=="5-7"&temp$discrim.type=="WC","WC+4","")))))
+    } else if (B.C.[1,1]=="2-4"){
+      temp$relative.bound <- ifelse(temp$stimulus=="2-4"&temp$discrim.type=="BC","BC",
+                                       ifelse(temp$stimulus=="1-3"&temp$discrim.type=="WC","WC-1",
+                                              ifelse(temp$stimulus=="3-5"&temp$discrim.type=="WC","WC+1",
+                                                     ifelse(temp$stimulus=="4-6"&temp$discrim.type=="WC","WC+2",
+                                                            ifelse(temp$stimulus=="5-7"&temp$discrim.type=="WC","WC+3","")))))
+    } else if (B.C.[1,1]=="3-5"){
+      temp$relative.bound <- ifelse(temp$stimulus=="3-5"&temp$discrim.type=="BC","BC",
+                                       ifelse(temp$stimulus=="1-3"&temp$discrim.type=="WC","WC-2",
+                                              ifelse(temp$stimulus=="2-4"&temp$discrim.type=="WC","WC-1",
+                                                     ifelse(temp$stimulus=="4-6"&temp$discrim.type=="WC","WC+1",
+                                                            ifelse(temp$stimulus=="5-7"&temp$discrim.type=="WC","WC+2","")))))
+    } else if (B.C.[1,1]=="4-6"){
+      temp$relative.bound <- ifelse(temp$stimulus=="4-6"&temp$discrim.type=="BC","BC",
+                                       ifelse(temp$stimulus=="1-3"&temp$discrim.type=="WC","WC-3",
+                                              ifelse(temp$stimulus=="2-4"&temp$discrim.type=="WC","WC-2",
+                                                     ifelse(temp$stimulus=="3-5"&temp$discrim.type=="WC","WC-1",
+                                                            ifelse(temp$stimulus=="5-7"&temp$discrim.type=="WC","WC+1","")))))
+    } else if (B.C.[1,1]=="5-7"){
+      temp$relative.bound <- ifelse(temp$stimulus=="5-7"&temp$discrim.type=="BC","BC",
+                                       ifelse(temp$stimulus=="1-3"&temp$discrim.type=="WC","WC-2",
+                                              ifelse(temp$stimulus=="2-4"&temp$discrim.type=="WC","WC-1",
+                                                     ifelse(temp$stimulus=="3-5"&temp$discrim.type=="WC","WC+1",
+                                                            ifelse(temp$stimulus=="4-6"&temp$discrim.type=="WC","WC+2","")))))
+    }
+    temp <- as.data.frame(temp)
+    dprime.relative.bound <- rbind(dprime.relative.bound,temp)
+  }
+}
+
+dprime_rb_lineplot <- summarySE(dprime.relative.bound, measurevar="dprime",groupvars = c("session","relative.bound","block"))
+dprime_rb_lineplot$relative.bound <- factor(dprime_rb_lineplot$relative.bound,levels=c("WC-3","WC-2","WC-1","BC","WC+1","WC+2","WC+3","WC+4"))
+dprime_rb_lineplot$plotting <- ifelse(dprime_rb_lineplot$session==1&dprime_rb_lineplot$block=="pretest_discrimination",1,
+                                   ifelse(dprime_rb_lineplot$session==2&dprime_rb_lineplot$block=="pretest_discrimination",2,
+                                          ifelse(dprime_rb_lineplot$session==3&dprime_rb_lineplot$block=="pretest_discrimination",3,
+                                                 ifelse(dprime_rb_lineplot$session==1&dprime_rb_lineplot$block=="posttest_discrimination",4,
+                                                        ifelse(dprime_rb_lineplot$session==2&dprime_rb_lineplot$block=="posttest_discrimination",5,
+                                                               ifelse(dprime_rb_lineplot$session==3&dprime_rb_lineplot$block=="posttest_discrimination",6,""))))))
+
+
+ggplot(dprime_rb_lineplot,aes(x=relative.bound,y=dprime,group=plotting,color=session)) +
+  geom_point(aes(color=session),stat='summary', fun.y='mean', size=3.5) +
+  geom_line(aes(color=session,linetype=block),stat='summary', fun.y='mean', size=2) +
+  geom_errorbar(aes(ymin=dprime-se,ymax=dprime+se,color=session),width=.25,size=1.25) +
+  scale_color_brewer('Session',palette="Set1") +
+  scale_linetype_discrete('Block',labels=c("Post-test","Pre-test")) +
+  theme(text = element_text(size=20))
+
+# mixed effects model on dprime with relative boundary
+
+dprime.relative.bound$session <- as.factor(dprime.relative.bound$session)
+dprime.relative.bound$relative.bound <- as.factor(dprime.relative.bound$relative.bound)
+dprime.relative.bound$block <- as.factor(dprime.relative.bound$block)
+
+lmem.relative.bound1 <- mixed(dprime ~ relative.bound*session*block + (session:block||subject2) + (session||subject2) + (block||subject2),
+                             data=dprime.relative.bound,expand_re = TRUE,
+                             control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+
+lmem.relative.bound2 <- mixed(dprime ~ relative.bound*session*block + (session:block||subject2),
+                              data=dprime.relative.bound,expand_re = TRUE,
+                              control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+
+lmem.relative.bound3 <- mixed(dprime ~ relative.bound*session*block + (session||subject2) + (block||subject2),
+                              data=dprime.relative.bound,expand_re = TRUE,
+                              control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+
+lmem.relative.bound4 <- mixed(dprime ~ relative.bound*session*block + (1|subject2),
+                              data=dprime.relative.bound,expand_re = TRUE,
+                              control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+
+lmem.relative.bound1
+
+# mixed effects model on dprime with relative boundary restricted to middle tokens
+dp.rel.mid <- subset(dprime.relative.bound,relative.bound!="WC-3"&relative.bound!="WC+4")
+dp.rel.mid$session <- as.factor(dp.rel.mid$session)
+dp.rel.mid$relative.bound <- as.factor(dp.rel.mid$relative.bound)
+dp.rel.mid$block <- as.factor(dp.rel.mid$block)
+
+# lmem.relative.bound.mid1 <- mixed(dprime ~ relative.bound*session*block + (block|subject2) + (session|subject2),data=dp.rel.mid,expand_re = TRUE,
+#                                  control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000))) doesn't converge
+
+# lmem.relative.bound.mid2 <- mixed(dprime ~ relative.bound*session*block + (block||subject2) + (session||subject2),data=dp.rel.mid,expand_re = TRUE,
+#                                   control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000))) doesn't converge
+
+lmem.relative.bound.mid3 <- mixed(dprime ~ relative.bound*session*block + (session||subject2),data=dp.rel.mid,expand_re = TRUE,
+                                  control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+lmem.relative.bound.mid4 <- mixed(dprime ~ relative.bound*session*block + (block||subject2),data=dp.rel.mid,expand_re = TRUE,
+                                  control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+lmem.relative.bound.mid5 <- mixed(dprime ~ relative.bound*session*block + (1|subject2),data=dp.rel.mid,expand_re = TRUE,
+                                  control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+
+anova(lmem.relative.bound.mid3,lmem.relative.bound.mid4,lmem.relative.bound.mid5)
+lmem.relative.bound.mid3
+
+# mixed effects model on dprime with non-relative boundary (2-4 and 3-5 as BC)
+dprime.relative.bound$nonrelative.bound <- ifelse(dprime.relative.bound$stimulus=="2-4"|dprime.relative.bound$stimulus=="3-5","BC","WC")
+
+dprime.relative.bound$session <- as.factor(dprime.relative.bound$session)
+dprime.relative.bound$nonrelative.bound <- as.factor(dprime.relative.bound$nonrelative.bound)
+dprime.relative.bound$block <- as.factor(dprime.relative.bound$block)
+
+# lmem.nonrelative.bound1 <- mixed(dprime ~ nonrelative.bound*session*block + (block|subject2) + (session|subject2),data=dprime.relative.bound,expand_re = TRUE,
+#                                  control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+# lmem.nonrelative.bound2 <- mixed(dprime ~ nonrelative.bound*session*block + (block||subject2) + (session||subject2),data=dprime.relative.bound,expand_re = TRUE,
+#                                  control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+
+lmem.nonrelative.bound3 <- mixed(dprime ~ nonrelative.bound*session*block + (session||subject2),data=dprime.relative.bound,expand_re = TRUE,
+                                 control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+lmem.nonrelative.bound4 <- mixed(dprime ~ nonrelative.bound*session*block + (block||subject2),data=dprime.relative.bound,expand_re = TRUE,
+                                 control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+lmem.nonrelative.bound5 <- mixed(dprime ~ nonrelative.bound*session*block + (1|subject2),data=dprime.relative.bound,expand_re = TRUE,
+                                 control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+
+anova(lmem.nonrelative.bound3,lmem.nonrelative.bound4,lmem.nonrelative.bound5)
+lmem.nonrelative.bound3
 
 #### PHONETIC CATEGORIZATION ANALYSIS ####
 
@@ -840,7 +1038,7 @@ mvpa.subject.curves <- quickpsy(readyforcurves, step, resp1,
                           guess = FALSE,
                           bootstrap = "nonparametric", 
                           optimization = "optim",
-                          B = 1000)
+                          B = 10000)
 
 # fit curves by session to get boundaries to compare to discrim peaks
 session.subject.curves <- quickpsy(readyforcurves, step, resp1, 
@@ -867,352 +1065,80 @@ continuum$session <- as.factor(continuum$session)
 continuum$subject2 <- as.factor(continuum$subject2)
 
 # glmer model
-PC.model1 <- glmer(resp1 ~ step*session + (step:session||subject2) + (step||subject2) + (session||subject2),
-                  data=continuum, family='binomial',
+PC.model1 <- mixed(resp1 ~ step*session + (step:session||subject2) + (step||subject2) + (session||subject2),
+                  data=continuum,  family=binomial(link="logit"),method="LRT",expand_re = TRUE,
                   control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
 
-PC.model2 <- glmer(resp1 ~ step*session + (step:session||subject2),
-                   data=continuum, family='binomial',
+PC.model2 <- mixed(resp1 ~ step*session + (step:session||subject2),
+                   data=continuum,  family=binomial(link="logit"),method="LRT",expand_re = TRUE,
                    control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
 
-PC.model3 <- glmer(resp1 ~ step*session + (step||subject2) + (session||subject2),
-                   data=continuum, family='binomial',
+PC.model3 <- mixed(resp1 ~ step*session + (step||subject2) + (session||subject2),
+                   data=continuum, family=binomial(link="logit"),method="LRT",expand_re = TRUE,
                    control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
 
-PC.model4 <- glmer(resp1 ~ step*session + (1|subject2),
-                   data=continuum, family='binomial',
+PC.model4 <- mixed(resp1 ~ step*session + (1|subject2),
+                   data=continuum, family=binomial(link="logit"),method="LRT",expand_re = TRUE,
                    control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
 
 anova(PC.model1,PC.model2,PC.model3,PC.model4)
-summary(PC.model1)
+PC.model1
 
 # afex model
 mixed(resp1 ~ step*session + (step*session||subject2) + (step||subject2) + (session||subject2), family=binomial(link="logit"),data=continuum,method="LRT")
 
-#### VOWEL TRAINING MIXED MODELS ####
-
-# separate out training blocks
-training <- subset(df,grepl("training",block))
-training <- subset(training,block!="training_sine")
-training <- subset(training,session!=4 & session!="S3")
-
-# prep data
-training$block <- as.factor(training$block)
-training$session <- as.factor(training$session)
-training$subject2 <- as.factor(training$subject2)
-training$trial <- scale(training$trial)
-
-training.model1 <- glmer(correct_response ~ block*session*trial + (block:session||subject2) +
-                           (block||subject2) + (session||subject2),
-                         data=training,family='binomial',
-                         control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
-
-training.model2 <- glmer(correct_response ~ block*session*trial + (block:session||subject2),
-                         data=training,family='binomial',
-                         control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
-
-training.model3 <- glmer(correct_response ~ block*session*trial +
-                           (block||subject2) + (session||subject2),
-                         data=training,family='binomial',
-                         control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
-
-training.model4 <- glmer(correct_response ~ block*session*trial + (1|subject2),
-                         data=training,family='binomial',
-                         control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
-
-anova(training.model1,training.model2,training.model3,training.model4)
-
 #### SINE SESSION ANALYSIS ####
-
-# create training performance figure with training sublock on the X axis and session as grouping variable
-
+# Sine Training -----------------------------------------------------------
 # separate training data
-training_figure_data <- subset(df,grepl("training",block))
+training <- subset(df,grepl("training",block))
 
 # remove session 4
-training_figure_data <- subset(training_figure_data,session!=4)
+training <- subset(training,session!=4)
 
-# subset sine training
-training_figure_data_sine <- subset(training_figure_data,session=="S3")
+# subset vowel training
+training.sine <- subset(training,session=="S3")
 
-# create figure
-# version with error bars
-stats3 <- summarySE(data=training_figure_data_sine, measurevar="correct_response",groupvars=c("block"))
+# calculate error bars
+training.sine.stats <- summarySE(data=training.sine, measurevar="correct_response",groupvars=c("subject2","block"))
 
-ggplot(stats3,aes(x=block,y=correct_response,fill=block)) + 
-  geom_bar(stat="identity",position="dodge") +
-  geom_errorbar(aes(ymin=correct_response-se,ymax=correct_response+se),position=position_dodge(width=0.9)) + 
-  scale_y_continuous('Percent accuracy',breaks=c(0.5,0.75,1),labels=c(50,75,100)) +
+# calculate number of blocks completed
+training.sine.stats$blocks.complete <- ifelse(training.sine.stats$N<62,1,
+                                         ifelse(training.sine.stats$N>61&training.sine.stats$N<120,2,
+                                                ifelse(training.sine.stats$N>120&training.sine.stats$N<182,3,NA)))
+# summarize
+training.sine.avg <- ddply(training.sine.stats,.(block,blocks.complete),summarize,mean=mean(correct_response))
+
+#bar graph
+ggplot(training.sine.stats,aes(x=block,y=correct_response)) + 
+  geom_bar(stat="summary",position="dodge",fun.y='mean') +
+  scale_y_continuous('Percent accuracy',breaks=c(0,0.25,0.5,0.75,1),labels=c(0,25,50,75,100)) +
   scale_x_discrete('Training block',labels=c('Easy 1-7','Medium 2-6','Hard 3-5')) +
-  scale_fill_brewer('Session #',palette = "Purples") +
-  coord_cartesian(ylim=c(0.4,1)) +
-  theme_dark() +
   theme(text = element_text(size=20))
 
 # overlay individual data points and group mean bars
-id3 <- ddply(training_figure_data_sine,.(subject2,block),summarize,mean=mean(correct_response))
+id <- ddply(training.sine.stats,.(subject2,block,blocks.complete),summarize,mean=mean(correct_response))
+stats <- summarySE(data=training.sine.stats, measurevar="correct_response",groupvars=("block"))
+gd <- select(stats,block,correct_response)
+gd <- rename(gd,mean=correct_response)
 
-gd3 <- select(stats3,block,correct_response)
-gd3 <- rename(gd3,mean=correct_response)
-#gd <- id %>% 
- # group_by(block) %>% 
-  #summarise(mean = mean(mean))
-
-ggplot(id3,aes(x=block,y=mean)) +
-  geom_point(aes(x=block),position = position_dodge(width=0.75)) + geom_bar(data=gd3,aes(fill=block),stat="identity",alpha=0.7,position="dodge") +
+# across session
+ggplot(id,aes(x=block,y=mean)) +
+  geom_point(aes(x=block,shape=factor(blocks.complete)),position = position_dodge(width=1)) + 
+  geom_bar(data=gd,stat="identity",alpha=0.5,position="dodge") +
   scale_y_continuous('Percent accuracy',breaks=c(0,0.25,0.5,0.75,1),labels=c(0,25,50,75,100)) +
-  scale_x_discrete('Training block',labels=c('Easy 1-7','Medium 2-6','Hard 3-5')) +
-  scale_fill_manual('Session #',labels=c("1","2","3"),values=c("green","green","green")) +
+  scale_x_discrete('Training level',labels=c('Easy 1-7','Medium 2-6','Hard 3-5')) +
+  scale_shape_discrete('Training\nblock\nrepetitions') +
   coord_cartesian(ylim=c(0.4,1)) +
-  guides(fill=FALSE,color=FALSE) +
-  theme_dark() +
   theme(text=element_text(size=20))
 
-### calculating d' for discrimination performance ###
+# mixed effects model
+training.sine$block <- as.factor(training.sine$block)
+training.sine$subject2 <- as.factor(training.sine$subject2)
 
-# subset to just discrimination blocks
-discrim_fig_data <- subset(df,grepl("discrimination",block))
+afex.training.model.sine <- mixed(correct_response ~ block + (1|subject2), family=binomial(link="logit"),data=training.sine,method="LRT")
+afex.training.model.sine
+summary(afex.training.model.sine)
 
-# remove session 4
-discrim_fig_data <- subset(discrim_fig_data,session!=4)
-
-# subset sine training
-discrim_fig_data_sine <- subset(discrim_fig_data,session=="S3")
-
-# subset only post-test
-discrim_fig_data_sine <- subset(discrim_fig_data_sine,grepl("posttest",block))
-
-# create variable to combine forwards/backwards discrimination steps
-discrim_fig_data_sine$discrim.token <- ifelse(discrim_fig_data_sine$fname=="iyu_step_1-step_1.wav","1-1",
-                                        ifelse(discrim_fig_data_sine$fname=="iyu_step_2-step_2.wav","2-2",
-                                               ifelse(discrim_fig_data_sine$fname=="iyu_step_3-step_3.wav","3-3",
-                                                      ifelse(discrim_fig_data_sine$fname=="iyu_step_4-step_4.wav","4-4",
-                                                             ifelse(discrim_fig_data_sine$fname=="iyu_step_5-step_5.wav","5-5",
-                                                                    ifelse(discrim_fig_data_sine$fname=="iyu_step_6-step_6.wav","6-6",
-                                                                           ifelse(discrim_fig_data_sine$fname=="iyu_step_7-step_7.wav","7-7",
-                                                                                  ifelse(discrim_fig_data_sine$fname=="iyu_step_1-step_3.wav","1-3",
-                                                                                         ifelse(discrim_fig_data_sine$fname=="iyu_step_2-step_4.wav","2-4",
-                                                                                                ifelse(discrim_fig_data_sine$fname=="iyu_step_3-step_5.wav","3-5",
-                                                                                                       ifelse(discrim_fig_data_sine$fname=="iyu_step_4-step_6.wav","4-6",
-                                                                                                              ifelse(discrim_fig_data_sine$fname=="iyu_step_5-step_7.wav","5-7",
-                                                                                                                     ifelse(discrim_fig_data_sine$fname=="iyu_step_3-step_1.wav","1-3",
-                                                                                                                            ifelse(discrim_fig_data_sine$fname=="iyu_step_4-step_2.wav","2-4",
-                                                                                                                                   ifelse(discrim_fig_data_sine$fname=="iyu_step_5-step_3.wav","3-5",
-                                                                                                                                          ifelse(discrim_fig_data_sine$fname=="iyu_step_6-step_4.wav","4-6",
-                                                                                                                                                 ifelse(discrim_fig_data_sine$fname=="iyu_step_7-step_5.wav","5-7",NA)))))))))))))))))
-
-
-discrim_fig_data_sine$condition <- ifelse(discrim_fig_data_sine$discrim.token=="1-1","same",
-                                           ifelse(discrim_fig_data_sine$discrim.token=="2-2","same",
-                                                  ifelse(discrim_fig_data_sine$discrim.token=="3-3","same",
-                                                         ifelse(discrim_fig_data_sine$discrim.token=="4-4","same",
-                                                                ifelse(discrim_fig_data_sine$discrim.token=="5-5","same",
-                                                                       ifelse(discrim_fig_data_sine$discrim.token=="6-6","same",
-                                                                              ifelse(discrim_fig_data_sine$discrim.token=="7-7","same",
-                                                                                     ifelse(discrim_fig_data_sine$discrim.token=="1-3","different",
-                                                                                            ifelse(discrim_fig_data_sine$discrim.token=="2-4","different",
-                                                                                                   ifelse(discrim_fig_data_sine$discrim.token=="3-5","different",
-                                                                                                          ifelse(discrim_fig_data_sine$discrim.token=="4-6","different",
-                                                                                                                 ifelse(discrim_fig_data_sine$discrim.token=="5-7","different",NA))))))))))))
-
-### calculate d' ###
-
-# make a new data frame that contains the data we need
-df1 <- discrim_fig_data_sine %>%
-  group_by(subject2,condition) %>%
-  summarize(prop_cor = mean(correct_response))
-
-df1 <- df1 %>% mutate(prop_cor=ifelse(condition=="different",prop_cor,1-prop_cor))
-
-df_final <- spread(df1, condition, prop_cor)
-
-colnames(df_final) <- c("Subject","Hit","FA")
-
-#we will use this closure to create two functions: one to change 1 to .99 and 
-# one to change 0 to .01 (.99 and .01 still have to be specified though)
-cutoff <- function(value) {
-  function(x,y) {
-    x[x == value] <- y
-    x
-  }
-}
-
-cutoff_1 <- cutoff(1)
-cutoff_0 <- cutoff(0)
-
-df_final$Hit <- cutoff_1(df_final$Hit,.99)
-df_final$Hit <- cutoff_0(df_final$Hit,.01)
-df_final$FA <- cutoff_1(df_final$FA,.99)
-df_final$FA <- cutoff_0(df_final$FA,.01)
-
-# make function for d', then apply it to each time point, participant, etc.
-d_prime <- function(Hit, FA){
-  qnorm(Hit) - qnorm(FA)
-}
-
-dprime <- df_final %>%
-  group_by(Subject) %>%
-  mutate(dprime = d_prime(Hit,FA))
-
-dprime <- dprime %>% select(-c(Hit,FA))
-dprime$key <- 1
-
-# create dprime by session figure 
-
-ggplot(dprime,aes(x=key,y=dprime)) + 
-  geom_boxplot(position="dodge",aes(fill=as.factor(key))) +
-  geom_point(position = position_dodge(width=0.75)) +
-  scale_fill_manual(values="green") +
-  theme_dark() +
-  theme(text = element_text(size=20))
-
-### calculate d' for each stimulus ###
-# make a new data frame that contains the data we need
-
-df4 <- discrim_fig_data_sine %>%
-  group_by(subject2,condition,discrim.token) %>%
-  summarize(prop_cor = mean(correct_response))
-
-df4 <- df4 %>% mutate(prop_incor=1-prop_cor)
-
-# we will use this closure to create two functions: one to change 1 to .99 and 
-# one to change 0 to .01 (.99 and .01 still have to be specified though)
-cutoff <- function(value) {
-  function(x,y) {
-    x[x == value] <- y
-    x
-  }
-}
-
-cutoff_1 <- cutoff(1)
-cutoff_0 <- cutoff(0)
-
-df4$prop_cor <- cutoff_1(df4$prop_cor,.99)
-df4$prop_cor <- cutoff_0(df4$prop_cor,.01)
-df4$prop_incor <- cutoff_1(df4$prop_incor,.99)
-df4$prop_incor <- cutoff_0(df4$prop_incor,.01)
-
-# make function for d', then apply it to each stimulus
-
-# 1-3 
-dprime_temp_same <- subset(df4,df4$discrim.token=="1-1" | df4$discrim.token=="3-3")
-dprime_temp_same <- ddply(dprime_temp_same,.(subject2),summarize,mean=mean(prop_incor))
-dprime_temp_same$condition <- "FA"
-dprime_temp_different <- subset(df4,df4$discrim.token=="1-3")
-dprime_temp_different <- ddply(dprime_temp_different,.(subject2),summarize,mean=mean(prop_cor))
-dprime_temp_different$condition <- "Hit"
-dprime_temp3 <- rbind(dprime_temp_same,dprime_temp_different)
-
-d_prime <- function(Hit,FA){
-  qnorm(Hit) - qnorm(FA)
-}
-
-dprime_temp3 <- spread(dprime_temp3, condition, mean)
-
-dprime_id_temp1 <- dprime_temp3 %>%
-  group_by(subject2) %>%
-  mutate(dprime = d_prime(Hit,FA))
-dprime_id_temp1$stimulus <- "1-3"
-
-# 2-4
-dprime_temp_same <- subset(df4,df4$discrim.token=="2-2" | df4$discrim.token=="4-4")
-dprime_temp_same <- ddply(dprime_temp_same,.(subject2),summarize,mean=mean(prop_incor))
-dprime_temp_same$condition <- "FA"
-dprime_temp_different <- subset(df4,df4$discrim.token=="2-4")
-dprime_temp_different <- ddply(dprime_temp_different,.(subject2),summarize,mean=mean(prop_cor))
-dprime_temp_different$condition <- "Hit"
-dprime_temp3 <- rbind(dprime_temp_same,dprime_temp_different)
-
-d_prime <- function(Hit,FA){
-  qnorm(Hit) - qnorm(FA)
-}
-
-dprime_temp3 <- spread(dprime_temp3, condition, mean)
-
-dprime_id_temp2 <- dprime_temp3 %>%
-  group_by(subject2) %>%
-  mutate(dprime = d_prime(Hit,FA))
-dprime_id_temp2$stimulus <- "2-4"
-
-# 3-5
-dprime_temp_same <- subset(df4,df4$discrim.token=="3-3" | df4$discrim.token=="5-5")
-dprime_temp_same <- ddply(dprime_temp_same,.(subject2),summarize,mean=mean(prop_incor))
-dprime_temp_same$condition <- "FA"
-dprime_temp_different <- subset(df4,df4$discrim.token=="3-5")
-dprime_temp_different <- ddply(dprime_temp_different,.(subject2),summarize,mean=mean(prop_cor))
-dprime_temp_different$condition <- "Hit"
-dprime_temp3 <- rbind(dprime_temp_same,dprime_temp_different)
-
-d_prime <- function(Hit,FA){
-  qnorm(Hit) - qnorm(FA)
-}
-
-dprime_temp3 <- spread(dprime_temp3, condition, mean)
-
-dprime_id_temp3 <- dprime_temp3 %>%
-  group_by(subject2) %>%
-  mutate(dprime = d_prime(Hit,FA))
-dprime_id_temp3$stimulus <- "3-5"
-
-# 4-6
-dprime_temp_same <- subset(df4,df4$discrim.token=="4-4" | df4$discrim.token=="6-6")
-dprime_temp_same <- ddply(dprime_temp_same,.(subject2),summarize,mean=mean(prop_incor))
-dprime_temp_same$condition <- "FA"
-dprime_temp_different <- subset(df4,df4$discrim.token=="4-6")
-dprime_temp_different <- ddply(dprime_temp_different,.(subject2),summarize,mean=mean(prop_cor))
-dprime_temp_different$condition <- "Hit"
-dprime_temp3 <- rbind(dprime_temp_same,dprime_temp_different)
-
-d_prime <- function(Hit,FA){
-  qnorm(Hit) - qnorm(FA)
-}
-
-dprime_temp3 <- spread(dprime_temp3, condition, mean)
-
-dprime_id_temp4 <- dprime_temp3 %>%
-  group_by(subject2) %>%
-  mutate(dprime = d_prime(Hit,FA))
-dprime_id_temp4$stimulus <- "4-6"
-
-# 5-7
-dprime_temp_same <- subset(df4,df4$discrim.token=="5-5" | df4$discrim.token=="7-7")
-dprime_temp_same <- ddply(dprime_temp_same,.(subject2),summarize,mean=mean(prop_incor))
-dprime_temp_same$condition <- "FA"
-dprime_temp_different <- subset(df4,df4$discrim.token=="5-7")
-dprime_temp_different <- ddply(dprime_temp_different,.(subject2),summarize,mean=mean(prop_cor))
-dprime_temp_different$condition <- "Hit"
-dprime_temp3 <- rbind(dprime_temp_same,dprime_temp_different)
-
-d_prime <- function(Hit,FA){
-  qnorm(Hit) - qnorm(FA)
-}
-
-dprime_temp3 <- spread(dprime_temp3, condition, mean)
-
-dprime_id_temp5 <- dprime_temp3 %>%
-  group_by(subject2) %>%
-  mutate(dprime = d_prime(Hit,FA))
-dprime_id_temp5$stimulus <- "5-7"
-
-dprime_id <- data.frame()
-dprime_id <- rbind(dprime_id_temp1,dprime_id_temp2,dprime_id_temp3,dprime_id_temp4,dprime_id_temp4,dprime_id_temp5)
-
-
-# create dprime by stimulus figure 
-ggplot(dprime_id,aes(x=stimulus,y=dprime,fill=stimulus)) + 
-  geom_boxplot(position="dodge") +
-  scale_fill_manual('#',labels=c("1","2","3","4","5"),values=c("green","green","green","green","green")) +
-  guides(fill=FALSE,color=FALSE) +
-  theme_dark() +
-  theme(text = element_text(size=20))
-
-ggplot(dprime_id,aes(x=stimulus,y=dprime)) + 
-  geom_point() +
-  geom_bar(position="dodge",aes(fill=stimulus),stat="summary",fun.y=mean,alpha=0.3) +
-  scale_fill_manual('#',labels=c("1","2","3","4","5"),values=c("green","green","green","green","green")) +
-  guides(fill=FALSE) +
-  theme_dark() +
-  theme(text = element_text(size=20))
 
 ### SINE PHONETIC CATEGORIZATION
 
@@ -1228,7 +1154,8 @@ continuum_sine <- subset(continuum_sine,continuum_sine$response!="d")
 continuum_sine$response <- tolower(continuum_sine$response)
 
 # create binary response variable
-continuum_sine$cb <- ifelse(continuum_sine$subject2==3|continuum_sine$subject2==11|continuum_sine$subject2==15|continuum_sine$subject2==20,"cb1","cb2")
+continuum_sine$cb <- ifelse(continuum_sine$subject2==3|continuum_sine$subject2==11|
+                              continuum_sine$subject2==15|continuum_sine$subject2==20|continuum_sine$subject2==31,"cb1","cb2")
 continuum_sineCB1 <- subset(continuum_sine,continuum_sine$cb=="cb1")
 continuum_sineCB2 <- subset(continuum_sine,continuum_sine$cb=="cb2")
 continuum_sineCB1$resp1 <- ifelse(continuum_sineCB1$response=="a",1,0)
@@ -1241,15 +1168,419 @@ continuum_sine$step <- substr(continuum_sine$fname,9,9)
 stats_sine <- summarySE(continuum_sine, measurevar="resp1",groupvars = c("subject2","step"))
 
 ggplot(stats_sine, aes(x=as.numeric(step),y=resp1)) +
-  geom_point(stat='summary', fun.y='mean', size=2.5,color="green") +
-  geom_line(stat='summary', fun.y='mean', size=0.75,color="green") +
+  geom_point(stat='summary', fun.y='mean', size=2.5,color="grey") +
+  geom_line(stat='summary', fun.y='mean', size=0.75,color="grey") +
   geom_errorbar(aes(ymin=resp1-se,ymax=resp1+se),width=.5) +
   facet_wrap(~subject2) +
   scale_x_continuous('/i/ to /y/ continuum step', breaks=c(1:7)) +
   scale_y_continuous('Percent /y/ responses', breaks=c(0,0.25,0.5,0.75,1), labels=c(0,25,50,75,100)) +
   coord_cartesian(ylim=c(0,1)) + 
+  theme(text = element_text(size=20))
+
+# fit curves
+continuum_sine$step <- as.numeric(continuum_sine$step)
+sine.boundaries <- quickpsy(continuum_sine, step, resp1, 
+                                                     grouping = .(subject2), 
+                                                     fun = logistic_fun,
+                                                     lapses = FALSE, 
+                                                     guess = FALSE,
+                                                     bootstrap = "nonparametric", 
+                                                     optimization = "optim",
+                                                     B = 100)
+
+
+sine.boundaries  <- as.data.frame(sine.boundaries$par)
+sine.boundaries [4:5] <- list(NULL)
+sine.boundaries  <- sine.boundaries  %>% spread(parn, par, drop=TRUE)
+colnames(sine.boundaries )[2] <- "Boundary"
+colnames(sine.boundaries )[3] <- "Slope"
+save(sine.boundaries,file="sine.boundaries.Rda")
+
+# Sine d' -----------------------------------------------------------------
+# subset to just discrimination blocks
+discrim <- subset(df,grepl("discrimination",block))
+
+# remove session 4
+discrim <- subset(discrim,session!=4)
+
+# subset vowel
+discrim.sine <- subset(discrim,session=="S3")
+
+# create variable to combine forwards/backwards discrimination steps
+discrim.sine$discrim.token <- ifelse(discrim.sine$fname=="iyu_step_1-step_1.wav","1-1",
+                                      ifelse(discrim.sine$fname=="iyu_step_2-step_2.wav","2-2",
+                                             ifelse(discrim.sine$fname=="iyu_step_3-step_3.wav","3-3",
+                                                    ifelse(discrim.sine$fname=="iyu_step_4-step_4.wav","4-4",
+                                                           ifelse(discrim.sine$fname=="iyu_step_5-step_5.wav","5-5",
+                                                                  ifelse(discrim.sine$fname=="iyu_step_6-step_6.wav","6-6",
+                                                                         ifelse(discrim.sine$fname=="iyu_step_7-step_7.wav","7-7",
+                                                                                ifelse(discrim.sine$fname=="iyu_step_1-step_3.wav","1-3",
+                                                                                       ifelse(discrim.sine$fname=="iyu_step_2-step_4.wav","2-4",
+                                                                                              ifelse(discrim.sine$fname=="iyu_step_3-step_5.wav","3-5",
+                                                                                                     ifelse(discrim.sine$fname=="iyu_step_4-step_6.wav","4-6",
+                                                                                                            ifelse(discrim.sine$fname=="iyu_step_5-step_7.wav","5-7",
+                                                                                                                   ifelse(discrim.sine$fname=="iyu_step_3-step_1.wav","1-3",
+                                                                                                                          ifelse(discrim.sine$fname=="iyu_step_4-step_2.wav","2-4",
+                                                                                                                                 ifelse(discrim.sine$fname=="iyu_step_5-step_3.wav","3-5",
+                                                                                                                                        ifelse(discrim.sine$fname=="iyu_step_6-step_4.wav","4-6",
+                                                                                                                                               ifelse(discrim.sine$fname=="iyu_step_7-step_5.wav","5-7",NA)))))))))))))))))
+
+
+discrim.sine$condition <- ifelse(discrim.sine$discrim.token=="1-1","same",
+                                  ifelse(discrim.sine$discrim.token=="2-2","same",
+                                         ifelse(discrim.sine$discrim.token=="3-3","same",
+                                                ifelse(discrim.sine$discrim.token=="4-4","same",
+                                                       ifelse(discrim.sine$discrim.token=="5-5","same",
+                                                              ifelse(discrim.sine$discrim.token=="6-6","same",
+                                                                     ifelse(discrim.sine$discrim.token=="7-7","same",
+                                                                            ifelse(discrim.sine$discrim.token=="1-3","different",
+                                                                                   ifelse(discrim.sine$discrim.token=="2-4","different",
+                                                                                          ifelse(discrim.sine$discrim.token=="3-5","different",
+                                                                                                 ifelse(discrim.sine$discrim.token=="4-6","different",
+                                                                                                        ifelse(discrim.sine$discrim.token=="5-7","different",NA))))))))))))
+
+
+dprime.stimulus <- discrim.sine %>%
+  group_by(subject2,condition,discrim.token,block) %>%
+  summarize(prop_cor = mean(correct_response))
+
+dprime.stimulus <- dprime.stimulus %>% mutate(prop_incor=1-prop_cor)
+
+# we will use this closure to create two functions: one to change 1 to .99 and 
+# one to change 0 to .01 (.99 and .01 still have to be specified though)
+cutoff <- function(value) {
+  function(x,y) {
+    x[x == value] <- y
+    x
+  }
+}
+
+cutoff_1 <- cutoff(1)
+cutoff_0 <- cutoff(0)
+
+dprime.stimulus$prop_cor <- cutoff_1(dprime.stimulus$prop_cor,.99)
+dprime.stimulus$prop_cor <- cutoff_0(dprime.stimulus$prop_cor,.01)
+dprime.stimulus$prop_incor <- cutoff_1(dprime.stimulus$prop_incor,.99)
+dprime.stimulus$prop_incor <- cutoff_0(dprime.stimulus$prop_incor,.01)
+
+### 1-3 ###
+dprime_temp_same <- subset(dprime.stimulus,dprime.stimulus$discrim.token=="1-1" | dprime.stimulus$discrim.token=="3-3")
+dprime_temp_same <- ddply(dprime_temp_same,.(subject2,block),summarize,mean=mean(prop_incor))
+dprime_temp_same$condition <- "FA"
+dprime_temp_different <- subset(dprime.stimulus,dprime.stimulus$discrim.token=="1-3")
+dprime_temp_different <- ddply(dprime_temp_different,.(subject2,block),summarize,mean=mean(prop_cor))
+dprime_temp_different$condition <- "Hit"
+dprime_temp1_3 <- rbind(dprime_temp_same,dprime_temp_different)
+
+d_prime <- function(Hit,FA){
+  qnorm(Hit) - qnorm(FA)
+}
+
+dprime_temp1_3 <- spread(dprime_temp1_3, condition, mean)
+
+dprime_temp1_3 <- dprime_temp1_3 %>%
+  group_by(subject2,block) %>%
+  mutate(dprime = d_prime(Hit,FA))
+dprime_temp1_3$stimulus <- "1-3"
+
+### 2-4 ###
+dprime_temp_same <- subset(dprime.stimulus,dprime.stimulus$discrim.token=="2-2" | dprime.stimulus$discrim.token=="4-4")
+dprime_temp_same <- ddply(dprime_temp_same,.(subject2,block),summarize,mean=mean(prop_incor))
+dprime_temp_same$condition <- "FA"
+dprime_temp_different <- subset(dprime.stimulus,dprime.stimulus$discrim.token=="2-4")
+dprime_temp_different <- ddply(dprime_temp_different,.(subject2,block),summarize,mean=mean(prop_cor))
+dprime_temp_different$condition <- "Hit"
+dprime_temp2_4 <- rbind(dprime_temp_same,dprime_temp_different)
+
+d_prime <- function(Hit,FA){
+  qnorm(Hit) - qnorm(FA)
+}
+
+dprime_temp2_4 <- spread(dprime_temp2_4, condition, mean)
+
+dprime_temp2_4 <- dprime_temp2_4 %>%
+  group_by(subject2,block) %>%
+  mutate(dprime = d_prime(Hit,FA))
+dprime_temp2_4$stimulus <- "2-4"
+
+### 3-5 ###
+dprime_temp_same <- subset(dprime.stimulus,dprime.stimulus$discrim.token=="3-3" | dprime.stimulus$discrim.token=="5-5")
+dprime_temp_same <- ddply(dprime_temp_same,.(subject2,block),summarize,mean=mean(prop_incor))
+dprime_temp_same$condition <- "FA"
+dprime_temp_different <- subset(dprime.stimulus,dprime.stimulus$discrim.token=="3-5")
+dprime_temp_different <- ddply(dprime_temp_different,.(subject2,block),summarize,mean=mean(prop_cor))
+dprime_temp_different$condition <- "Hit"
+dprime_temp3_5 <- rbind(dprime_temp_same,dprime_temp_different)
+
+d_prime <- function(Hit,FA){
+  qnorm(Hit) - qnorm(FA)
+}
+
+dprime_temp3_5 <- spread(dprime_temp3_5, condition, mean)
+
+dprime_temp3_5 <- dprime_temp3_5 %>%
+  group_by(subject2,block) %>%
+  mutate(dprime = d_prime(Hit,FA))
+dprime_temp3_5$stimulus <- "3-5"
+
+### 4-6 ###
+dprime_temp_same <- subset(dprime.stimulus,dprime.stimulus$discrim.token=="4-4" | dprime.stimulus$discrim.token=="6-6")
+dprime_temp_same <- ddply(dprime_temp_same,.(subject2,block),summarize,mean=mean(prop_incor))
+dprime_temp_same$condition <- "FA"
+dprime_temp_different <- subset(dprime.stimulus,dprime.stimulus$discrim.token=="4-6")
+dprime_temp_different <- ddply(dprime_temp_different,.(subject2,block),summarize,mean=mean(prop_cor))
+dprime_temp_different$condition <- "Hit"
+dprime_temp4_6 <- rbind(dprime_temp_same,dprime_temp_different)
+
+d_prime <- function(Hit,FA){
+  qnorm(Hit) - qnorm(FA)
+}
+
+dprime_temp4_6 <- spread(dprime_temp4_6, condition, mean)
+
+dprime_temp4_6 <- dprime_temp4_6 %>%
+  group_by(subject2,block) %>%
+  mutate(dprime = d_prime(Hit,FA))
+dprime_temp4_6$stimulus <- "4-6"
+
+### 5-7 ###
+dprime_temp_same <- subset(dprime.stimulus,dprime.stimulus$discrim.token=="5-5" | dprime.stimulus$discrim.token=="7-7")
+dprime_temp_same <- ddply(dprime_temp_same,.(subject2,block),summarize,mean=mean(prop_incor))
+dprime_temp_same$condition <- "FA"
+dprime_temp_different <- subset(dprime.stimulus,dprime.stimulus$discrim.token=="5-7")
+dprime_temp_different <- ddply(dprime_temp_different,.(subject2,block),summarize,mean=mean(prop_cor))
+dprime_temp_different$condition <- "Hit"
+dprime_temp5_7 <- rbind(dprime_temp_same,dprime_temp_different)
+
+d_prime <- function(Hit,FA){
+  qnorm(Hit) - qnorm(FA)
+}
+
+dprime_temp5_7 <- spread(dprime_temp5_7, condition, mean)
+
+dprime_temp5_7 <- dprime_temp5_7 %>%
+  group_by(subject2,block) %>%
+  mutate(dprime = d_prime(Hit,FA))
+dprime_temp5_7$stimulus <- "5-7"
+
+dprime_id <- data.frame()
+dprime_id <- rbind(dprime_temp1_3,dprime_temp2_4,dprime_temp3_5,dprime_temp4_6,dprime_temp5_7)
+rm(dprime_temp_same,dprime_temp_different,dprime_temp1_3,dprime_temp2_4,dprime_temp3_5,dprime_temp4_6,dprime_temp5_7)
+
+# create dprime by stimulus figure 
+# boxplot
+# ggplot(dprime_id,aes(x=stimulus,y=dprime)) + 
+#   geom_boxplot(position="dodge",aes(fill=session)) +
+#   scale_fill_brewer('Session #',palette = "Purples") +
+#   theme_dark() +
+#   theme(text = element_text(size=20))
+
+# lineplot group average
+dprime_lineplot <- summarySE(dprime_id, measurevar="dprime",groupvars = c("stimulus","block"))
+
+ggplot(dprime_lineplot,aes(x=stimulus,y=dprime,group=block)) +
+  geom_point(stat='summary', fun.y='mean', size=3.5) +
+  geom_line(aes(linetype=block),stat='summary', fun.y='mean', size=2) +
+  geom_errorbar(aes(ymin=dprime-se,ymax=dprime+se,linetype=block),width=.25,size=1.25) +
+  scale_linetype_discrete('Block',labels=c("Post-test","Pre-test")) +
+  theme(text = element_text(size=20))
+
+# lineplot by individual
+ggplot(dprime_id,aes(x=stimulus,y=dprime,group=session)) +
+  geom_point(aes(color=session),stat='summary', fun.y='mean', size=3.5) +
+  geom_line(aes(color=session),stat='summary', fun.y='mean', size=2) +
+  scale_color_brewer('Session',palette="Purples") +
+  facet_wrap(~subject2) +
   theme_dark() +
   theme(text = element_text(size=20))
+
+# Sine peak discrim -------------------------------------------------------
+peak.discrim <- dprime_id %>% group_by(subject2,block) %>% slice(which.max(dprime))
+peak.discrim <- select(peak.discrim,"subject2","dprime","stimulus","block")
+
+# combine with category boundaries
+load("sine.boundaries.Rda")
+
+# create histogram of boundaries before rounding
+ggplot(sine.boundaries,aes(x=Boundary,group=factor(subject2))) + 
+  geom_histogram(binwidth=.5) +
+  theme(text = element_text(size=20))
+
+# round boundaries
+sine.boundaries <- sine.boundaries[rep(1:nrow(sine.boundaries),2),]
+sine.boundaries$block[1:26] <- "pretest_discrimination"
+sine.boundaries$block[1.1:26.1] <- "posttest_discrimination"
+sine.boundaries$Boundary <- round(sine.boundaries$Boundary)
+
+# look at peak discrim token and boundaries
+peak.discrim$boundary <- sine.boundaries$Boundary
+peak.discrim <- subset(peak.discrim,boundary!=-9)
+ggplot(peak.discrim,aes(x=stimulus,y=boundary,label=subject2)) + 
+  scale_y_continuous('Boundary') +
+  ylim(0,7) + xlab('Peak discrimination stimulus') + geom_label_repel(aes(label=subject2)) +
+  theme(text = element_text(size=20))
+
+# use this information to determine what is between-category and what is within-category
+dprime_id$boundary <- NA
+for (i in unique(dprime_id$subject2)){
+    temp.boundaries <- sine.boundaries[sine.boundaries$subject2==i,"Boundary"]
+    dprime_id$boundary <- ifelse(dprime_id$subject2==i,temp.boundaries,dprime_id$boundary)
+}
+
+
+dprime_id$discrim.type <- ifelse(dprime_id$boundary==0&dprime_id$stimulus=="3-5","BC","WC")
+dprime_id$discrim.type <- ifelse(dprime_id$boundary==9&dprime_id$stimulus=="3-5","BC",dprime_id$discrim.type)
+dprime_id$discrim.type <- ifelse(dprime_id$boundary==1&dprime_id$stimulus=="1-3","BC",dprime_id$discrim.type)
+dprime_id$discrim.type <- ifelse(dprime_id$boundary==2&dprime_id$stimulus=="1-3","BC",dprime_id$discrim.type)
+dprime_id$discrim.type <- ifelse(dprime_id$boundary==3&dprime_id$stimulus=="2-4","BC",dprime_id$discrim.type)
+dprime_id$discrim.type <- ifelse(dprime_id$boundary==4&dprime_id$stimulus=="3-5","BC",dprime_id$discrim.type)
+dprime_id$discrim.type <- ifelse(dprime_id$boundary==5&dprime_id$stimulus=="4-6","BC",dprime_id$discrim.type)
+dprime_id$discrim.type <- ifelse(dprime_id$boundary==6&dprime_id$stimulus=="5-7","BC",dprime_id$discrim.type)
+dprime_id$discrim.type <- ifelse(dprime_id$boundary==7&dprime_id$stimulus=="5-7","BC",dprime_id$discrim.type)
+
+# summarize BC and WC
+summary(dprime_id)
+ggplot(dprime_id,aes(x=discrim.type,fill=discrim.type)) + geom_bar()
+
+# BC d' on Day 3
+BC.dprime.day3 <- subset(dprime_id,session==3 & discrim.type=="BC")
+
+# WC d' on Day 3
+WC.dprime.day3 <- subset(dprime_id,session==3 & discrim.type=="WC")
+WC.dprime.day3 <- ddply(WC.dprime.day3,.(subject2),summarize,dprime=mean(dprime))
+
+# # create dprime by stimulus figure for session 3 to compare to sine
+# dprime_id_session3 <- subset(dprime_id,session==3)
+# ggplot(dprime_id_session3,aes(x=stimulus,y=dprime)) + 
+#   geom_point() +
+#   geom_bar(position="dodge",aes(fill=stimulus),stat="summary",fun.y=mean,alpha=0.3) +
+#   scale_fill_manual('#',labels=c("1","2","3","4","5"),values=c("purple","purple","purple","purple","purple")) +
+#   guides(fill=FALSE) +
+#   theme_dark() +
+#   theme(text = element_text(size=20))
+
+# create figure where discrim tokens are labeled relative to the individuals boundary
+dprimesine.relative.bound <- data.frame(matrix(vector(), 0,9,
+                                           dimnames=list(c(),c("subject2","block", "FA", "Hit","dprime",
+                                                               "stimulus","boundary","discrim.type","relative.bound"))))
+
+for (subj in unique(dprime_id$subject2)){
+  for (b in unique(dprime_id$block)){
+    temp <- subset(dprime_id,subject2==subj&block==b)
+    B.C. = dprime_id[dprime_id$subject2==subj&dprime_id$block==b&dprime_id$discrim.type=="BC","stimulus"]
+    if (B.C.[1,1]=="1-3"){
+      temp$relative.bound <- ifelse(temp$stimulus=="1-3"&temp$discrim.type=="BC","BC",
+                                    ifelse(temp$stimulus=="2-4"&temp$discrim.type=="WC","WC+1",
+                                           ifelse(temp$stimulus=="3-5"&temp$discrim.type=="WC","WC+2",
+                                                  ifelse(temp$stimulus=="4-6"&temp$discrim.type=="WC","WC+3",
+                                                         ifelse(temp$stimulus=="5-7"&temp$discrim.type=="WC","WC+4","")))))
+    } else if (B.C.[1,1]=="2-4"){
+      temp$relative.bound <- ifelse(temp$stimulus=="2-4"&temp$discrim.type=="BC","BC",
+                                    ifelse(temp$stimulus=="1-3"&temp$discrim.type=="WC","WC-1",
+                                           ifelse(temp$stimulus=="3-5"&temp$discrim.type=="WC","WC+1",
+                                                  ifelse(temp$stimulus=="4-6"&temp$discrim.type=="WC","WC+2",
+                                                         ifelse(temp$stimulus=="5-7"&temp$discrim.type=="WC","WC+3","")))))
+    } else if (B.C.[1,1]=="3-5"){
+      temp$relative.bound <- ifelse(temp$stimulus=="3-5"&temp$discrim.type=="BC","BC",
+                                    ifelse(temp$stimulus=="1-3"&temp$discrim.type=="WC","WC-2",
+                                           ifelse(temp$stimulus=="2-4"&temp$discrim.type=="WC","WC-1",
+                                                  ifelse(temp$stimulus=="4-6"&temp$discrim.type=="WC","WC+1",
+                                                         ifelse(temp$stimulus=="5-7"&temp$discrim.type=="WC","WC+2","")))))
+    } else if (B.C.[1,1]=="4-6"){
+      temp$relative.bound <- ifelse(temp$stimulus=="4-6"&temp$discrim.type=="BC","BC",
+                                    ifelse(temp$stimulus=="1-3"&temp$discrim.type=="WC","WC-3",
+                                           ifelse(temp$stimulus=="2-4"&temp$discrim.type=="WC","WC-2",
+                                                  ifelse(temp$stimulus=="3-5"&temp$discrim.type=="WC","WC-1",
+                                                         ifelse(temp$stimulus=="5-7"&temp$discrim.type=="WC","WC+1","")))))
+    } else if (B.C.[1,1]=="5-7"){
+      temp$relative.bound <- ifelse(temp$stimulus=="5-7"&temp$discrim.type=="BC","BC",
+                                    ifelse(temp$stimulus=="1-3"&temp$discrim.type=="WC","WC-2",
+                                           ifelse(temp$stimulus=="2-4"&temp$discrim.type=="WC","WC-1",
+                                                  ifelse(temp$stimulus=="3-5"&temp$discrim.type=="WC","WC+1",
+                                                         ifelse(temp$stimulus=="4-6"&temp$discrim.type=="WC","WC+2","")))))
+    }
+    temp <- as.data.frame(temp)
+    dprimesine.relative.bound <- rbind(dprimesine.relative.bound,temp)
+  }
+}
+
+dprime_rb_lineplot <- summarySE(dprimesine.relative.bound, measurevar="dprime",groupvars = c("relative.bound","block"))
+dprime_rb_lineplot$relative.bound <- factor(dprime_rb_lineplot$relative.bound,levels=c("WC-3","WC-2","WC-1","BC","WC+1","WC+2","WC+3","WC+4"))
+
+ggplot(dprime_rb_lineplot,aes(x=relative.bound,y=dprime,group=block)) +
+  geom_point(stat='summary', fun.y='mean', size=3.5) +
+  geom_line(aes(linetype=block),stat='summary', fun.y='mean', size=2) +
+  geom_errorbar(aes(ymin=dprime-se,ymax=dprime+se),width=.25,size=1.25) +
+  scale_linetype_discrete('Block',labels=c("Post-test","Pre-test")) +
+  theme(text = element_text(size=20))
+
+# mixed effects model on dprime with relative boundary
+
+dprime.relative.bound$session <- as.factor(dprime.relative.bound$session)
+dprime.relative.bound$relative.bound <- as.factor(dprime.relative.bound$relative.bound)
+dprime.relative.bound$block <- as.factor(dprime.relative.bound$block)
+
+lmem.relative.bound1 <- mixed(dprime ~ relative.bound*session*block + (session:block||subject2) + (session||subject2) + (block||subject2),
+                              data=dprime.relative.bound,expand_re = TRUE,
+                              control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+
+lmem.relative.bound2 <- mixed(dprime ~ relative.bound*session*block + (session:block||subject2),
+                              data=dprime.relative.bound,expand_re = TRUE,
+                              control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+
+lmem.relative.bound3 <- mixed(dprime ~ relative.bound*session*block + (session||subject2) + (block||subject2),
+                              data=dprime.relative.bound,expand_re = TRUE,
+                              control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+
+lmem.relative.bound4 <- mixed(dprime ~ relative.bound*session*block + (1|subject2),
+                              data=dprime.relative.bound,expand_re = TRUE,
+                              control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+
+lmem.relative.bound1
+
+# mixed effects model on dprime with relative boundary restricted to middle tokens
+dp.rel.mid <- subset(dprime.relative.bound,relative.bound!="WC-3"&relative.bound!="WC+4")
+dp.rel.mid$session <- as.factor(dp.rel.mid$session)
+dp.rel.mid$relative.bound <- as.factor(dp.rel.mid$relative.bound)
+dp.rel.mid$block <- as.factor(dp.rel.mid$block)
+
+# lmem.relative.bound.mid1 <- mixed(dprime ~ relative.bound*session*block + (block|subject2) + (session|subject2),data=dp.rel.mid,expand_re = TRUE,
+#                                  control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000))) doesn't converge
+
+# lmem.relative.bound.mid2 <- mixed(dprime ~ relative.bound*session*block + (block||subject2) + (session||subject2),data=dp.rel.mid,expand_re = TRUE,
+#                                   control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000))) doesn't converge
+
+lmem.relative.bound.mid3 <- mixed(dprime ~ relative.bound*session*block + (session||subject2),data=dp.rel.mid,expand_re = TRUE,
+                                  control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+lmem.relative.bound.mid4 <- mixed(dprime ~ relative.bound*session*block + (block||subject2),data=dp.rel.mid,expand_re = TRUE,
+                                  control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+lmem.relative.bound.mid5 <- mixed(dprime ~ relative.bound*session*block + (1|subject2),data=dp.rel.mid,expand_re = TRUE,
+                                  control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+
+anova(lmem.relative.bound.mid3,lmem.relative.bound.mid4,lmem.relative.bound.mid5)
+lmem.relative.bound.mid3
+
+# mixed effects model on dprime with non-relative boundary (2-4 and 3-5 as BC)
+dprime.relative.bound$nonrelative.bound <- ifelse(dprime.relative.bound$stimulus=="2-4"|dprime.relative.bound$stimulus=="3-5","BC","WC")
+
+dprime.relative.bound$session <- as.factor(dprime.relative.bound$session)
+dprime.relative.bound$nonrelative.bound <- as.factor(dprime.relative.bound$nonrelative.bound)
+dprime.relative.bound$block <- as.factor(dprime.relative.bound$block)
+
+# lmem.nonrelative.bound1 <- mixed(dprime ~ nonrelative.bound*session*block + (block|subject2) + (session|subject2),data=dprime.relative.bound,expand_re = TRUE,
+#                                  control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+# lmem.nonrelative.bound2 <- mixed(dprime ~ nonrelative.bound*session*block + (block||subject2) + (session||subject2),data=dprime.relative.bound,expand_re = TRUE,
+#                                  control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+
+lmem.nonrelative.bound3 <- mixed(dprime ~ nonrelative.bound*session*block + (session||subject2),data=dprime.relative.bound,expand_re = TRUE,
+                                 control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+lmem.nonrelative.bound4 <- mixed(dprime ~ nonrelative.bound*session*block + (block||subject2),data=dprime.relative.bound,expand_re = TRUE,
+                                 control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+lmem.nonrelative.bound5 <- mixed(dprime ~ nonrelative.bound*session*block + (1|subject2),data=dprime.relative.bound,expand_re = TRUE,
+                                 control = lmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+
+anova(lmem.nonrelative.bound3,lmem.nonrelative.bound4,lmem.nonrelative.bound5)
+lmem.nonrelative.bound3
 
 #### MIXED EFFECTS MODELS FOR DISCRIMINATION ####
 
@@ -1321,6 +1652,18 @@ summary(afexmodel1)
 model1 <- glmer(correct_response ~ block.session + (1|subject2),
                   data=vowel.mod.data, family='binomial',
                   control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 1500000)))
+summary(model1)
+
+# analysis with just first pre-test and final post-test
+vowel.mod.data2 <- subset(vowel.mod.data,block.session==1|block.session==6)
+
+afexmodel1 <- mixed(correct_response ~ block.session*discrim.token + (1|subject2), family=binomial(link="logit"),data=vowel.mod.data2,method="LRT")
+summary(afexmodel1)
+
+# run glmer to get simple effects
+model1 <- glmer(correct_response ~ block.session + (1|subject2),
+                data=vowel.mod.data, family='binomial',
+                control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 1500000)))
 summary(model1)
 
 # SINE

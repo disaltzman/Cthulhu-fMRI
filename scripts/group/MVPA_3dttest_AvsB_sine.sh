@@ -10,4 +10,8 @@ foreach subj (1 2 3 6 8 9 10 11 12 14 15 16 17 18 20 21 22 24 25 26 27 28 30 31 
 	-prefix $top_dir/group/MVPA/AvsB_sine/res_accuracy_minus_chance_cth${subj}
 end
 
-3dttest++ -setA $top_dir/group/MVPA/AvsB_sine/res_accuracy_minus_chance* -prefix $top_dir/group/MVPA/AvsB_sine/AvsB_sine_ttest
+3dttest++ -setA $top_dir/group/MVPA/AvsB_sine/res_accuracy_minus_chance* -prefix $top_dir/group/MVPA/AvsB_sine/AvsB_sine_ttest \
+-mask $top_dir/group/group_mask+tlrc
+
+3dBlurToFWHM -FWHM 4 -mask $top_dir/group/group_mask+tlrc \
+-prefix $top_dir/group/MVPA/AvsB_sine/AvsB_sine_ttest_blurred -input $top_dir/group/MVPA/AvsB_sine/AvsB_sine_ttest*
