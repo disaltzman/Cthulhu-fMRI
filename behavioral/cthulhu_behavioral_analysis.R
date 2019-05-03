@@ -1038,7 +1038,7 @@ mvpa.subject.curves <- quickpsy(readyforcurves, step, resp1,
                           guess = FALSE,
                           bootstrap = "nonparametric", 
                           optimization = "optim",
-                          B = 10000)
+                          B = 2000)
 
 # fit curves by session to get boundaries to compare to discrim peaks
 session.subject.curves <- quickpsy(readyforcurves, step, resp1, 
