@@ -1040,6 +1040,12 @@ mvpa.subject.curves <- quickpsy(readyforcurves, step, resp1,
                           optimization = "optim",
                           B = 2000)
 
+boundaries <- as.data.frame(mvpa.subject.curves$par)
+boundaries[4:5] <- list(NULL)
+boundaries <- boundaries %>% spread(parn, par, drop=TRUE)
+colnames(boundaries)[2] <- "Boundary"
+colnames(boundaries)[3] <- "Slope"
+
 # fit curves by session to get boundaries to compare to discrim peaks
 session.subject.curves <- quickpsy(readyforcurves, step, resp1, 
                                 grouping = .(subject2,session), 
@@ -1186,7 +1192,7 @@ sine.boundaries <- quickpsy(continuum_sine, step, resp1,
                                                      guess = FALSE,
                                                      bootstrap = "nonparametric", 
                                                      optimization = "optim",
-                                                     B = 100)
+                                                     B = 2000)
 
 
 sine.boundaries  <- as.data.frame(sine.boundaries$par)
