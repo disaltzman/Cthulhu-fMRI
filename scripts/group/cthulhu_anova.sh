@@ -1,14 +1,17 @@
 #!/bin/csh -f
 
+set top_dir = /Volumes/netapp/Myerslab/Dave/Cthulhu/data 
 
 # For this analysis, both groups are treated equally
 # a levels = SoundType; 1=Sine, 2=Vowel
 # b levels = Continuum Point: 1=step1, 2=step3 3=step5 4=step7
 #  for sine, [4]=sinestep1; [7]=sinestep3; [10]=sinestep5; [13]=sinestep7;
 #  for vowel, [16]=vowelstep1; [19]=vowelstep3; [22]=vowelstep5; [25]=vowelstep7;
+
 cd /Volumes/netapp/Myerslab/Dave/Cthulhu/data
 
 3dANOVA3 -type 4 \
+-mask $top_dir/group/group_mask+tlrc \
 -alevels 2 \
 -blevels 4 \
 -clevels 26 \
