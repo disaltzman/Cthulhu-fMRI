@@ -42,4 +42,4 @@ cth31	$top_dir/group/MVPA/AvsB_vowel/res_accuracy_minus_chance_cth31_blurred+tlr
 cth32	$top_dir/group/MVPA/AvsB_vowel/res_accuracy_minus_chance_cth32_blurred+tlrc'[0]' \
 cth34	$top_dir/group/MVPA/AvsB_vowel/res_accuracy_minus_chance_cth34_blurred+tlrc'[0]' \
 -prefix $top_dir/group/MVPA/AvsB_vowel/AvsB_vowel_ttest \
--mask $top_dir/group/group_mask+tlrc -covariates mvpa_covariates.txt -clustsim
+-mask $top_dir/group/group_mask+tlrc -covariates mvpa_covariates.txt

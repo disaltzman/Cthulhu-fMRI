@@ -17,20 +17,23 @@ Also looks at the following contrasts:
 2. **Boundary - Endpoint** (vowel)
 3. **Boundary - Endpoint** (sine)
 
-The ANOVA acts as a sanity check to ensure that fMRI data and subjects are behaving as expected (activation in temporal lobe for sounds, etc).
+The ANOVA acts as a sanity check to ensure that fMRI data and subjects are behaving as expected (activation in temporal lobe for sounds, etc). ANOVA results in line with expectation, stronger bilateral activation for sinewave tokens, however greater activation for endpoints than boundary tokens.
 
 ***LME***
 
-Linear mixed effects model (`3dLME`) serves as compliment to ANOVA but allows for us to use covariates from behavioral data to contrain results.
+Linear mixed effects model (`3dLME`) serves as compliment to ANOVA but allows for us to use covariates from behavioral data to constrain results.
 
-*Current LME analysis*:
+Contrasts:
+<p>
 `VowelvsSine-accuracy` - looking at what brain regions show greater activation for vowels after accounting for accuracy at level 3 in session 3's training.
 
-*Potential LME analyses*:
+`VowelvsSine-dprime` - looking at what brain regions show greater activation for vowels after accounting for peak d' score from that participant.
 
-`VowelvsSine-dprime` - using d' from discrimination performance
+`BoundaryVsEndpoint_vowel-accuracy`- looking at what brain regions show greater activation for vowel boundary tokens (steps 3 & 5) than endpoint tokens (steps 1 & 3) after accounting for accuracy at level 3 in session 3's training.
 
-`BoundaryvsEndpoint-dprime`
+`BoundaryVsEndpoint_sine-accuracy`- looking at what brain regions show greater activation for sine boundary tokens (steps 3 & 5) than endpoint tokens (steps 1 & 3) after accounting for accuracy at level 3 in session 3's training.
+
+Contrasts holding covariates fixed did not end up being very informative.
 
 ## Multivariate fMRI
 
@@ -46,15 +49,9 @@ Leave-one-run-out cross-validated design in `The Decoding Toolbox`, searchlight 
 
 T-test's (`3dttest++`) used to test accuracy-chance maps against 0. Current T-tests:
 
-1. **AvsB - Vowel**
+1. **AvsB - Vowel** 
 2. **AvsB - Sine**
-3. **Paired T-test: AvsB Vowel-Sine** - looks for regions that show greater decoding sensitivity for vowels 
-
-***Potential MVPA Analyses***
-
-1. Using individual subject boundaries to determine which tokens fit into which categories - step 3 could be an /y/ for some people but an /i/ for others - likely lowering accuracy by not acccounting for this
-2. Use various behavioral measures as covariates in `3dttest++`
-3. Targeted ROI's?
+3. **Paired T-test: AvsB Vowel-Sine** - looks for regions that can significanly discriminate between category A vs B irrespective of sound type.
 
 ## Behavioral 
 

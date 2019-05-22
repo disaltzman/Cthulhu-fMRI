@@ -51,7 +51,7 @@ beta_loc = get_filenames_afni([dir_base 'cth' subjects{s} '/' 'cth' subjects{s} 
 % for ROI e.g. {'c:\exp\roi\roimaskleft.img', 'c:\exp\roi\roimaskright.img'}
 % You can also use a mask file with multiple masks inside that are
 % separated by different integer values (a "multi-mask")
-cfg.files.mask = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvpa/mask_epi_anat.' subjects{s} '+orig.BRIK.gz'];
+cfg.files.mask = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvpa/mask_epi_anat.' subjects{s} '+orig.BRIK'];
 
 % Set the label names to the regressor names which you want to use for 
 % decoding, e.g. 'button left' and 'button right'
