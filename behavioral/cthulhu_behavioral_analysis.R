@@ -366,11 +366,11 @@ training_sine.3 <- subset(sine_session,block == "training3")
 continuum1_sine <- subset(sine_session,block == "continuum")
 
 # summarize performance by subject
-pretest_sine_performance = ddply(pretest_sine,.(subject),summarize,mean=mean(correct_response))
-posttest_sine_performance = ddply(posttest_sine,.(subject),summarize,mean=mean(correct_response))
-training_sine.1_performance = ddply(training_sine.1,.(subject),summarize,mean=mean(correct_response))
-training_sine.2_performance = ddply(training_sine.2,.(subject),summarize,mean=mean(correct_response))
-training_sine.3_performance = ddply(training_sine.3,.(subject),summarize,mean=mean(correct_response))
+pretest_sine_performance = ddply(pretest_sine,.(subject2),summarize,mean=mean(correct_response))
+posttest_sine_performance = ddply(posttest_sine,.(subject2),summarize,mean=mean(correct_response))
+training_sine.1_performance = ddply(training_sine.1,.(subject2),summarize,mean=mean(correct_response))
+training_sine.2_performance = ddply(training_sine.2,.(subject2),summarize,mean=mean(correct_response))
+training_sine.3_performance = ddply(training_sine.3,.(subject2),summarize,mean=mean(correct_response))
 
 
 # TRAINING DESCRIPTIVES & ANALYSIS ####

@@ -13,7 +13,7 @@
 clear; 
 dir_base = '/Volumes/netapp/Myerslab/Dave/Cthulhu/data/';
 
-subjects = {'1'};
+subjects = {'1','2','3'};
 subIndsToProcess = 1:length(subjects);
 
 for s = subIndsToProcess
@@ -37,7 +37,7 @@ cfg.scale.estimation = 'all';
 % cfg.decoding.train.classification_kernel.model_parameters = '-s 0 -t 4 -c 0.001 -b 0 -q';
 
 % Set the output directory where data will be saved, e.g. 'c:\exp\results\buttonpress'
-cfg.results.dir = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvpa/searchlight/AvsB_vowel-relative'];
+cfg.results.dir = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvpa/searchlight/AvsB_vowel-permutation'];
 
 % Set the full path to the files where your coefficients for each run are stored e.g. 
 % {'/misc/data/mystudy/results1+orig.BRIK','/misc/data/mystudy/results2+orig.BRIK',...}
@@ -105,7 +105,20 @@ cfg = decoding_describe_data(cfg,{labelname1 labelname2 labelname3 labelname4},[
 % This creates the leave-one-run-out cross validation design:
 cfg.design = make_design_cv(cfg); 
 cfg.design.unbalanced_data = 'ok';
+
 % Run decoding
 results = decoding(cfg);
+%%%%%%%%%
+
+% permutation analysis
+[results,cfg] = decoding(cfg);% run previously prepared decoding
+cfg.design = make_design_permutation(cfg,1000,1); % creates one design with 1000 permutations
+[reference,cfg] = decoding(cfg);
+% run permutations
+cfg.stats.test = 'permutation'; % set test
+cfg.stats.tail = 'right'; % set tail of statistical correction
+cfg.stats.output = 'accuracy_minus_chance'; % choose from all original outputs
+
+p = decoding_statistics(cfg,results,reference);
 
 end
