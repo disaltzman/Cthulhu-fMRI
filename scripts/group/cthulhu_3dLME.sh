@@ -14,7 +14,7 @@ cd top_dir
 -qVars "Day3Accuracy,peak.discrim" \
 -ranEff "~1" \
 -jobs 3 \
--num_glt 4 \
+-num_glt 5 \
 -gltLabel 1 "VowelvsSine-accuracy" \
 -gltCode 1 'SoundType : 1*Vowel -1*Sine Day3Accuracy :' \
 -gltLabel 2 "BoundaryVsEndpoint_vowel-accuracy" \
@@ -23,6 +23,8 @@ cd top_dir
 -gltCode 3 'Step : 0.5*step1 -0.5*step3 -0.5*step5 0.5*step7 SoundType : 1*Sine Day3Accuracy :' \
 -gltLabel 4 "VowelvsSine-dprime" \
 -gltCode 4 'SoundType : 1*Vowel -1*Sine peak.discrim :' \
+-gltLabel 5 "BoundaryVsEndpoint-accuracy" \
+-gltCode 5 'Step : 0.5*step1 -0.5*step3 -0.5*step5 0.5*step7 Day3Accuracy :' \
 -dataTable \
 Subj	peak.discrim	Day3Accuracy	SoundType	Step	InputFile \
 cth1	3.400560772	1	Vowel	step1	cth1/cth1.preproc/'stats.1+tlrc[16]' \

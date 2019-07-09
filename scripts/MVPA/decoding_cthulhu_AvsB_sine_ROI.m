@@ -11,9 +11,9 @@
 %addpath('$ADD FULL PATH TO TOOLBOX AS STRING OR MAKE THIS LINE A COMMENT IF IT IS ALREADY$')
 
 clear; 
-dir_base = '/Volumes/netapp/Research/Myerslab/Dave/Cthulhu/data/';
+dir_base = '/Volumes/netapp/Myerslab/Dave/Cthulhu/data/';
 
-subjects = {'1','2','3','6'};
+subjects = {'1','2','3','6','8','9','10','11','12','14','15','16','17','18','20','21','22','24','25','26','27','28','30','31','32','34'};
 subIndsToProcess = 1:length(subjects);
 
 for s = subIndsToProcess
@@ -25,20 +25,15 @@ cfg = decoding_defaults;
 cfg.software = 'AFNI';
 
 % Set the analysis that should be performed (default is 'searchlight')
-cfg.analysis = 'searchlight';
-cfg.searchlight.radius = 20; % use searchlight of radius 3 (by default in voxels), see more details below
-cfg.searchlight.unit = 'mm';
-% cfg.decoding.software = 'correlation_classification';
-% cfg.decoding.method = 'classification';
+cfg.analysis = 'ROI';
 cfg.decoding.software = 'liblinear';
 cfg.decoding.method = 'classification';
 cfg.decoding.train.classification.model_parameters = '-s 1 -c 1 -q';
 cfg.scale.method = 'z';
 cfg.scale.estimation = 'all';
-% cfg.decoding.train.classification_kernel.model_parameters = '-s 0 -t 4 -c 0.001 -b 0 -q';
 
 % Set the output directory where data will be saved, e.g. 'c:\exp\results\buttonpress'
-cfg.results.dir = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvpa/searchlight/AvsB_vowel-20mm'];
+cfg.results.dir = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvpa/searchlight/AvsB_sine-ROI'];
 
 % Set the full path to the files where your coefficients for each run are stored e.g. 
 % {'/misc/data/mystudy/results1+orig.BRIK','/misc/data/mystudy/results2+orig.BRIK',...}
@@ -52,16 +47,16 @@ beta_loc = get_filenames_afni([dir_base 'cth' subjects{s} '/' 'cth' subjects{s} 
 % for ROI e.g. {'c:\exp\roi\roimaskleft.img', 'c:\exp\roi\roimaskright.img'}
 % You can also use a mask file with multiple masks inside that are
 % separated by different integer values (a "multi-mask")
-cfg.files.mask = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvpa/mask_epi_anat.' subjects{s} '+orig.BRIK'];
+cfg.files.mask = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvpa/AvsB_vowel_0_025_clust_mask_cth' subjects{s} '_resampled+orig.BRIK'];
 
 % Set the label names to the regressor names which you want to use for 
 % decoding, e.g. 'button left' and 'button right'
 % don't remember the names? -> run display_regressor_names(beta_loc)
 
-labelname1 = 'vowelstep1*';
-labelname2 = 'vowelstep3*';
-labelname3 = 'vowelstep5*';
-labelname4 = 'vowelstep7*';
+labelname1 = 'sinestep1*';
+labelname2 = 'sinestep3*';
+labelname3 = 'sinestep5*';
+labelname4 = 'sinestep7*';
 
 
 %% Set additional parameters
@@ -110,17 +105,15 @@ cfg.design.unbalanced_data = 'ok';
 % Run decoding
 results = decoding(cfg);
 %%%%%%%%%
-
+% 
 % % permutation analysis
 % cfg.design = make_design_permutation(cfg,10,1); % creates one design with 1000 permutations
-% cfg.design.unbalanced_data = 'ok';
 % [reference,cfg] = decoding(cfg);
 % % run permutations
 % cfg.stats.test = 'permutation'; % set test
 % cfg.stats.tail = 'right'; % set tail of statistical correction
 % cfg.stats.output = 'accuracy_minus_chance'; % choose from all original outputs
-% cfg.stats.results.write = 1;
-% cfg.stats.results.fpath = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvpa/searchlight/AvsB_vowel-permutation/permutation_output'];
+% cfg.stats.write = 1;
 % 
 % p = decoding_statistics(cfg,results,reference);
 

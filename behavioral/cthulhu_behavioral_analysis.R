@@ -386,6 +386,7 @@ training.vowel <- subset(training,session!="S3")
 
 # calculate error bars
 training.stats <- summarySE(data=training.vowel, measurevar="correct_response",groupvars=c("subject2","block","session"))
+#training.stats <- summarySE(data=training.vowel, measurevar="correct_response",groupvars=c("block","session"))
 
 # calculate number of blocks completed
 training.stats$blocks.complete <- ifelse(training.stats$N<62,1,
@@ -415,8 +416,8 @@ ggplot(id,aes(x=block,y=mean)) +
   geom_bar(data=gd,aes(fill=session),stat="identity",alpha=0.5,position="dodge") +
   scale_y_continuous('Percent accuracy',breaks=c(0,0.25,0.5,0.75,1),labels=c(0,25,50,75,100)) +
   scale_x_discrete('Training level',labels=c('Easy 1-7','Medium 2-6','Hard 3-5')) +
-  scale_fill_brewer('Session #',palette="Set1") +
-  scale_color_brewer('Session #',palette="Set1") +
+  scale_fill_brewer('Training day',palette="Set1") +
+  scale_color_brewer('Training day',palette="Set1") +
   scale_shape_discrete('Training\nblock\nrepetitions') +
   coord_cartesian(ylim=c(0.4,1)) +
   theme(text=element_text(size=20))
@@ -459,25 +460,27 @@ training$blocks.complete <- as.factor(training$blocks.complete)
 training.model1 <- glmer(correct_response ~ block*session + (block:session||subject2) +
                            (block||subject2) + (session||subject2),
                          data=training.vowel,family='binomial',
-                         control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 100000)))
+                         control = glmerControl(optimizer="bobyqa",calc.derivs = FALSE,optCtrl = list(maxfun = 100000)))
 
 training.model2 <- glmer(correct_response ~ block*session + (block:session||subject2),
                          data=training.vowel,family='binomial',
-                         control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 100000)))
+                         control = glmerControl(optimizer="bobyqa",calc.derivs = FALSE, optCtrl = list(maxfun = 100000)))
 
 training.model3 <- glmer(correct_response ~ block*session +
                            (block||subject2) + (session||subject2),
                          data=training.vowel,family='binomial',
-                         control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 100000)))
+                         control = glmerControl(optimizer="bobyqa",calc.derivs = FALSE, optCtrl = list(maxfun = 100000)))
 
 training.model4 <- glmer(correct_response ~ block*session + (1|subject2),
                          data=training.vowel,family='binomial',
-                         control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 100000)))
+                         control = glmerControl(optimizer="bobyqa",calc.derivs = FALSE, optCtrl = list(maxfun = 100000)))
 
-afex.training.model <- mixed(correct_response ~ block*session + (1|subject2), family=binomial(link="logit"),data=training.vowel,method="LRT")
+afex.training.model <- mixed(correct_response ~ block*session + (block:session||subject2), 
+                             family=binomial(link="logit"),data=training.vowel,method="LRT",expand_re = TRUE,
+                             control = glmerControl(optimizer="bobyqa",calc.derivs = FALSE, optCtrl = list(maxfun = 100000)))
 
 anova(training.model1,training.model2,training.model3,training.model4)
-summary(training.model3)
+summary(training.model2)
 
 # CALCULATING D' FOR VOWEL DISCRIM ####
 
@@ -757,7 +760,7 @@ ggplot(dprime_id,aes(x=stimulus,y=dprime,group=session)) +
   theme_dark() +
   theme(text = element_text(size=20))
 
-  # find peak discrimination token for each participant =====
+  #### find peak discrimination token for each participant ####
 peak.discrim <- dprime_id %>% group_by(subject2,session,block) %>% slice(which.max(dprime))
 peak.discrim <- select(peak.discrim,"session","subject2","dprime","stimulus","block")
 # peak discrim for use as MRI regressor
@@ -1002,12 +1005,10 @@ ggplot(stats, aes(x=as.numeric(step), y=resp1,color=factor(session))) +
   geom_point(stat='summary', fun.y='mean', size=3,alpha=0.7) +
   geom_line(stat='summary', fun.y='mean', size=1.25, alpha=0.7) +
   geom_errorbar(aes(ymin=resp1-se,ymax=resp1+se),width=.5) +
-  facet_wrap(~subject2) +
-  scale_x_continuous('/i/ to /y/ continuum step', breaks=c(1:7)) +
+  scale_x_continuous('Continuum step', breaks=c(1:7)) +
   scale_y_continuous('Percent /y/ responses', breaks=c(0,0.25,0.5,0.75,1), labels=c(0,25,50,75,100)) +
-  scale_color_brewer('Session', labels=c('1','2','3'),palette="Purples") +
+  scale_color_brewer('Training Day', labels=c('1','2','3'),palette="Set1") +
   coord_cartesian(ylim=c(0,1)) + 
-  theme_dark() +
   theme(text = element_text(size=20))
 
 # plot day 1 to compare to sine
@@ -1026,7 +1027,7 @@ ggplot(stats_vowel, aes(x=as.numeric(step),y=resp1)) +
   theme(text = element_text(size=20))
 
 # fit curves for session 3 using quickpsy for MVPA
-readyforcurves <- subset(continuum,session==3)
+#readyforcurves <- subset(continuum,session==3)
 readyforcurves$session <- as.numeric(readyforcurves$session)
 readyforcurves$subject2 <- as.numeric(readyforcurves$subject2)
 readyforcurves$step <- as.numeric(readyforcurves$step)
@@ -1047,14 +1048,14 @@ colnames(boundaries)[2] <- "Boundary"
 colnames(boundaries)[3] <- "Slope"
 
 # fit curves by session to get boundaries to compare to discrim peaks
-session.subject.curves <- quickpsy(readyforcurves, step, resp1, 
+session.subject.curves <- quickpsy(continuum, step, resp1, 
                                 grouping = .(subject2,session), 
                                 fun = logistic_fun,
                                 lapses = FALSE, 
                                 guess = FALSE,
                                 bootstrap = "nonparametric", 
                                 optimization = "optim",
-                                B = 100)
+                                B = 1000)
 
 boundaries <- as.data.frame(session.subject.curves$par)
 boundaries[5:6] <- list(NULL)
@@ -1073,19 +1074,19 @@ continuum$subject2 <- as.factor(continuum$subject2)
 # glmer model
 PC.model1 <- mixed(resp1 ~ step*session + (step:session||subject2) + (step||subject2) + (session||subject2),
                   data=continuum,  family=binomial(link="logit"),method="LRT",expand_re = TRUE,
-                  control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+                  control = glmerControl(optimizer="bobyqa", calc.derivs = FALSE,optCtrl = list(maxfun = 150000)))
 
 PC.model2 <- mixed(resp1 ~ step*session + (step:session||subject2),
                    data=continuum,  family=binomial(link="logit"),method="LRT",expand_re = TRUE,
-                   control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+                   control = glmerControl(optimizer="bobyqa",calc.derivs = FALSE, optCtrl = list(maxfun = 150000)))
 
 PC.model3 <- mixed(resp1 ~ step*session + (step||subject2) + (session||subject2),
                    data=continuum, family=binomial(link="logit"),method="LRT",expand_re = TRUE,
-                   control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+                   control = glmerControl(optimizer="bobyqa",calc.derivs = FALSE, optCtrl = list(maxfun = 150000)))
 
 PC.model4 <- mixed(resp1 ~ step*session + (1|subject2),
                    data=continuum, family=binomial(link="logit"),method="LRT",expand_re = TRUE,
-                   control = glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 150000)))
+                   control = glmerControl(optimizer="bobyqa",calc.derivs = FALSE, optCtrl = list(maxfun = 150000)))
 
 anova(PC.model1,PC.model2,PC.model3,PC.model4)
 PC.model1
