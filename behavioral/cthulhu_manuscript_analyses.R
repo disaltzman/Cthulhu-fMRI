@@ -131,31 +131,31 @@ summary(training.model2)
 continuum <- subset(df,df$block=="continuum")
 
 # subset vowel sessions
-continuum <- subset(continuum,continuum$session!="S3")
+continuum.vowel <- subset(continuum,continuum$session!="S3")
 
 # drop NA trials and trials where people hit the wrong button
-continuum <- subset(continuum,continuum$response!="None")
-continuum <- subset(continuum,continuum$response!="d")
-continuum$response <- tolower(continuum$response)
+continuum.vowel <- subset(continuum.vowel,continuum.vowel$response!="None")
+continuum.vowel <- subset(continuum.vowel,continuum.vowel$response!="d")
+continuum.vowel$response <- tolower(continuum.vowel$response)
 
 # create binary response variable
-continuum$cb <- ifelse(continuum$subject2==3|continuum$subject2==8|
-                         continuum$subject2==11|continuum$subject2==12|
-                         continuum$subject2==15|continuum$subject2==16|
-                         continuum$subject2==20|continuum$subject2==24|
-                         continuum$subject2==27|continuum$subject2==28|
-                         continuum$subject2==31|continuum$subject2==32,"cb1","cb2")
-continuumCB1 <- subset(continuum,continuum$cb=="cb1")
-continuumCB2 <- subset(continuum,continuum$cb=="cb2")
-continuumCB1$resp1 <- ifelse(continuumCB1$response=="a",1,0)
-continuumCB2$resp1 <- ifelse(continuumCB2$response=="a",0,1)
-continuum <- rbind(continuumCB1,continuumCB2)
+continuum.vowel$cb <- ifelse(continuum.vowel$subject2==3|continuum.vowel$subject2==8|
+                         continuum.vowel$subject2==11|continuum.vowel$subject2==12|
+                         continuum.vowel$subject2==15|continuum.vowel$subject2==16|
+                         continuum.vowel$subject2==20|continuum.vowel$subject2==24|
+                         continuum.vowel$subject2==27|continuum.vowel$subject2==28|
+                         continuum.vowel$subject2==31|continuum.vowel$subject2==32,"cb1","cb2")
+continuum.vowelCB1 <- subset(continuum.vowel,continuum.vowel$cb=="cb1")
+continuum.vowelCB2 <- subset(continuum.vowel,continuum.vowel$cb=="cb2")
+continuum.vowelCB1$resp1 <- ifelse(continuum.vowelCB1$response=="a",1,0)
+continuum.vowelCB2$resp1 <- ifelse(continuum.vowelCB2$response=="a",0,1)
+continuum.vowel <- rbind(continuum.vowelCB1,continuum.vowelCB2)
 
 # create 'step' variable
-continuum$step <- substr(continuum$fname,10,10)
+continuum.vowel$step <- substr(continuum.vowel$fname,10,10)
 
 # plot by sessions
-stats <- summarySE(continuum, measurevar="resp1",groupvars = c("step","session"))
+stats <- summarySE(continuum.vowel, measurevar="resp1",groupvars = c("step","session"))
 
 PC.fig<-ggplot(stats, aes(x=as.numeric(step), y=resp1,color=factor(session))) +
   geom_point(stat='summary', fun.y='mean', size=3,alpha=0.7) +
@@ -168,12 +168,21 @@ PC.fig<-ggplot(stats, aes(x=as.numeric(step), y=resp1,color=factor(session))) +
   theme(text = element_text(size=20))
 
 # curve fitting to get boundaries
-continuum$subject2 <- as.numeric(continuum$subject2)
-continuum$step <- as.numeric(continuum$step)
+continuum.vowel$subject2 <- as.numeric(continuum.vowel$subject2)
+continuum.vowel$step <- as.numeric(continuum.vowel$step)
 
 # fit curves by session to get boundaries to compare to discrim peaks
-session.subject.curves <- quickpsy(continuum, step, resp1, 
+session.subject.curves <- quickpsy(continuum.vowel, step, resp1, 
                                    grouping = .(subject2,session), 
+                                   fun = logistic_fun,
+                                   lapses = FALSE, 
+                                   guess = FALSE,
+                                   bootstrap = "nonparametric", 
+                                   optimization = "optim",
+                                   B = 1000)
+
+session.curves <- quickpsy(continuum.vowel, step, resp1, 
+                                   grouping = .(session), 
                                    fun = logistic_fun,
                                    lapses = FALSE, 
                                    guess = FALSE,
@@ -187,6 +196,37 @@ boundaries <- boundaries %>% spread(parn, par, drop=TRUE)
 colnames(boundaries)[3] <- "Boundary"
 colnames(boundaries)[4] <- "Slope"
 save(boundaries,file="boundaries.Rda")
+
+# mixed effects model
+# prep data
+continuum.vowel$step <- as.numeric(continuum.vowel$step)
+continuum.vowel$step <- scale(continuum.vowel$step)
+continuum.vowel$session <- as.factor(continuum.vowel$session)
+continuum.vowel$subject2 <- as.factor(continuum.vowel$subject2)
+
+# glmer model
+PC.model1 <- mixed(resp1 ~ step*session + (step:session||subject2) + (step||subject2) + (session||subject2),
+                   data=continuum.vowel,  family=binomial(link="logit"),method="LRT",expand_re = TRUE,
+                   control = glmerControl(optimizer="bobyqa", calc.derivs = FALSE,optCtrl = list(maxfun = 150000)))
+
+PC.model2 <- mixed(resp1 ~ step*session + (step:session||subject2),
+                   data=continuum.vowel,  family=binomial(link="logit"),method="LRT",expand_re = TRUE,
+                   control = glmerControl(optimizer="bobyqa",calc.derivs = FALSE, optCtrl = list(maxfun = 150000)))
+
+PC.model3 <- mixed(resp1 ~ step*session + (step||subject2) + (session||subject2),
+                   data=continuum.vowel, family=binomial(link="logit"),method="LRT",expand_re = TRUE,
+                   control = glmerControl(optimizer="bobyqa",calc.derivs = FALSE, optCtrl = list(maxfun = 150000)))
+
+PC.model4 <- mixed(resp1 ~ step*session + (1|subject2),
+                   data=continuum.vowel, family=binomial(link="logit"),method="LRT",expand_re = TRUE,
+                   control = glmerControl(optimizer="bobyqa",calc.derivs = FALSE, optCtrl = list(maxfun = 150000)))
+
+anova(PC.model1,PC.model2,PC.model3,PC.model4)
+PC.model1
+
+# afex model
+mixed(resp1 ~ step*session + (step*session||subject2) + (step||subject2) + (session||subject2), family=binomial(link="logit"),data=continuum.vowel,method="LRT")
+
 
 # D' FOR EACH VOWEL STIMULUS ====
 
@@ -553,6 +593,8 @@ training.sine <- subset(training,session=="S3")
 
 # calculate error bars
 training.sine.stats <- summarySE(data=training.sine, measurevar="correct_response",groupvars=c("subject2","block"))
+training.sine.stats <- summarySE(data=training.sine, measurevar="correct_response",groupvars=c("block"))
+
 
 # calculate number of blocks completed
 training.sine.stats$blocks.complete <- ifelse(training.sine.stats$N<62,1,
@@ -594,27 +636,27 @@ summary(afex.training.model.sine)
 continuum <- subset(df,df$block=="continuum")
 
 # subset sine sessions
-continuum_sine <- subset(continuum,continuum$session=="S3")
+continuum.sine <- subset(continuum,continuum$session=="S3")
 
 # drop NA trials and trials where people hit the wrong button
-continuum_sine <- subset(continuum_sine,continuum_sine$response!="None")
-continuum_sine <- subset(continuum_sine,continuum_sine$response!="d")
-continuum_sine$response <- tolower(continuum_sine$response)
+continuum.sine <- subset(continuum.sine,continuum.sine$response!="None")
+continuum.sine <- subset(continuum.sine,continuum.sine$response!="d")
+continuum.sine$response <- tolower(continuum.sine$response)
 
 # create binary response variable
-continuum_sine$cb <- ifelse(continuum_sine$subject2==3|continuum_sine$subject2==11|
-                              continuum_sine$subject2==15|continuum_sine$subject2==20|continuum_sine$subject2==31,"cb1","cb2")
-continuum_sineCB1 <- subset(continuum_sine,continuum_sine$cb=="cb1")
-continuum_sineCB2 <- subset(continuum_sine,continuum_sine$cb=="cb2")
-continuum_sineCB1$resp1 <- ifelse(continuum_sineCB1$response=="a",1,0)
-continuum_sineCB2$resp1 <- ifelse(continuum_sineCB2$response=="a",0,1)
-continuum_sine <- rbind(continuum_sineCB1,continuum_sineCB2)
+continuum.sine$cb <- ifelse(continuum.sine$subject2==3|continuum.sine$subject2==11|
+                              continuum.sine$subject2==15|continuum.sine$subject2==20|continuum.sine$subject2==31,"cb1","cb2")
+continuum.sineCB1 <- subset(continuum.sine,continuum.sine$cb=="cb1")
+continuum.sineCB2 <- subset(continuum.sine,continuum.sine$cb=="cb2")
+continuum.sineCB1$resp1 <- ifelse(continuum.sineCB1$response=="a",1,0)
+continuum.sineCB2$resp1 <- ifelse(continuum.sineCB2$response=="a",0,1)
+continuum.sine <- rbind(continuum.sineCB1,continuum.sineCB2)
 
 # create 'step' variable
-continuum_sine$step <- substr(continuum_sine$fname,9,9)
+continuum.sine$step <- substr(continuum.sine$fname,9,9)
 
 # create date for figure
-stats_sine <- summarySE(continuum_sine, measurevar="resp1",groupvars = c("step"))
+stats_sine <- summarySE(continuum.sine, measurevar="resp1",groupvars = c("step"))
 
 sine_PC_fig <- ggplot(stats_sine, aes(x=as.numeric(step),y=resp1)) +
   geom_point(stat='summary', fun.y='mean', size=2.5) +
@@ -628,9 +670,9 @@ sine_PC_fig <- ggplot(stats_sine, aes(x=as.numeric(step),y=resp1)) +
   labs(y=expression(Percent~'/y/'['SWS']~responses))
 
 # set up mixed-model
-continuum_sine$step <- scale(as.numeric(continuum_sine$step))
+continuum.sine$step <- scale(as.numeric(continuum.sine$step))
 
-PC.sine.model1 <- mixed(resp1 ~ step + (1|subject2), family=binomial(link="logit"),data=continuum_sine,method="LRT")
+PC.sine.model1 <- mixed(resp1 ~ step + (1|subject2), family=binomial(link="logit"),data=continuum.sine,method="LRT")
 PC.sine.model1
 
 # SWS d' ####
@@ -1000,3 +1042,134 @@ align_leftcol5 <- align_plots(sine_training_fig, sine_PC_fig, align="hv", axis="
 align_rightcol5 <- align_plots(sine_dprime_fig,sine_dprime_relative_fig, align="hv", axis="tblr")
 plot_grid(align_leftcol5[[1]],align_rightcol5[[1]],align_leftcol5[[2]],align_rightcol5[[2]],labels=c("A","C","B","D"))
 
+
+# Comparison of Vowel and SWS ####
+
+# separate training data
+training <- subset(df,grepl("training",block))
+
+# remove session 4
+training <- subset(training,session!=4)
+
+# add stimulus type variable
+training$type <- ifelse(training$session=="S3","SWS","Vowel")
+
+# set up model for training comparison
+training$block <- as.factor(training$block)
+training$type <- as.factor
+
+training.comp1 <- mixed(correct_response ~ block*type + (type:block||subject2) + (type||subject2) + (block||subject2),
+family=binomial(link="logit"),data=training,method="LRT",expand_re = TRUE,
+control = glmerControl(optimizer="bobyqa",calc.derivs = FALSE, optCtrl = list(maxfun = 100000)))
+
+training.comp2 <- mixed(correct_response ~ block*type + (type:block||subject2),
+                        family=binomial(link="logit"),data=training,method="LRT",expand_re = TRUE,
+                        control = glmerControl(optimizer="bobyqa",calc.derivs = FALSE, optCtrl = list(maxfun = 100000)))
+
+training.comp3 <- mixed(correct_response ~ block*type + (type||subject2) + (block||subject2),
+                        family=binomial(link="logit"),data=training,method="LRT",expand_re = TRUE,
+                        control = glmerControl(optimizer="bobyqa",calc.derivs = FALSE, optCtrl = list(maxfun = 100000)))
+
+training.comp4 <- mixed(correct_response ~ block*type + (block||subject2),
+                        family=binomial(link="logit"),data=training,method="LRT",expand_re = TRUE,
+                        control = glmerControl(optimizer="bobyqa",calc.derivs = FALSE, optCtrl = list(maxfun = 100000)))
+
+training.comp5 <- mixed(correct_response ~ block*type + (type||subject2),
+                        family=binomial(link="logit"),data=training,method="LRT",expand_re = TRUE,
+                        control = glmerControl(optimizer="bobyqa",calc.derivs = FALSE, optCtrl = list(maxfun = 100000)))
+
+training.comp6 <- mixed(correct_response ~ block*type + (1|subject2),
+                        family=binomial(link="logit"),data=training,method="LRT",expand_re = TRUE,
+                        control = glmerControl(optimizer="bobyqa",calc.derivs = FALSE, optCtrl = list(maxfun = 100000)))
+
+anova(training.comp1,training.comp2,training.comp3,training.comp4,training.comp5,training.comp6)
+training.comp1
+
+# Continuum categorization comparison between Vowel day 3 and SWS
+
+# subset continuum data
+continuum <- subset(df,df$block=="continuum")
+
+# subset vowel sessions
+continuum.vowel <- subset(continuum,continuum$session!="S3")
+
+# drop NA trials and trials where people hit the wrong button
+continuum.vowel <- subset(continuum.vowel,continuum.vowel$response!="None")
+continuum.vowel <- subset(continuum.vowel,continuum.vowel$response!="d")
+continuum.vowel$response <- tolower(continuum.vowel$response)
+
+# create binary response variable
+continuum.vowel$cb <- ifelse(continuum.vowel$subject2==3|continuum.vowel$subject2==8|
+                               continuum.vowel$subject2==11|continuum.vowel$subject2==12|
+                               continuum.vowel$subject2==15|continuum.vowel$subject2==16|
+                               continuum.vowel$subject2==20|continuum.vowel$subject2==24|
+                               continuum.vowel$subject2==27|continuum.vowel$subject2==28|
+                               continuum.vowel$subject2==31|continuum.vowel$subject2==32,"cb1","cb2")
+continuum.vowelCB1 <- subset(continuum.vowel,continuum.vowel$cb=="cb1")
+continuum.vowelCB2 <- subset(continuum.vowel,continuum.vowel$cb=="cb2")
+continuum.vowelCB1$resp1 <- ifelse(continuum.vowelCB1$response=="a",1,0)
+continuum.vowelCB2$resp1 <- ifelse(continuum.vowelCB2$response=="a",0,1)
+continuum.vowel <- rbind(continuum.vowelCB1,continuum.vowelCB2)
+
+# create 'step' variable
+continuum.vowel$step <- substr(continuum.vowel$fname,10,10)
+
+# subset sine sessions
+continuum.sine <- subset(continuum,continuum$session=="S3")
+
+# drop NA trials and trials where people hit the wrong button
+continuum.sine <- subset(continuum.sine,continuum.sine$response!="None")
+continuum.sine <- subset(continuum.sine,continuum.sine$response!="d")
+continuum.sine$response <- tolower(continuum.sine$response)
+
+# create binary response variable
+continuum.sine$cb <- ifelse(continuum.sine$subject2==3|continuum.sine$subject2==11|
+                              continuum.sine$subject2==15|continuum.sine$subject2==20|continuum.sine$subject2==31,"cb1","cb2")
+continuum.sineCB1 <- subset(continuum.sine,continuum.sine$cb=="cb1")
+continuum.sineCB2 <- subset(continuum.sine,continuum.sine$cb=="cb2")
+continuum.sineCB1$resp1 <- ifelse(continuum.sineCB1$response=="a",1,0)
+continuum.sineCB2$resp1 <- ifelse(continuum.sineCB2$response=="a",0,1)
+continuum.sine <- rbind(continuum.sineCB1,continuum.sineCB2)
+
+# create 'step' variable
+continuum.sine$step <- substr(continuum.sine$fname,9,9)
+
+# combine transformed continuum datasets into one larger dataframe
+continuum.comp <- rbind(continuum.sine,continuum.vowel)
+#----------------------------------------------------------#
+  
+# prep variables for model
+continuum.comp <- subset(continuum.comp,continuum.comp$session=="3"|continuum.comp$session=="S3")
+continuum.comp$type <- ifelse(grepl("vowel",continuum.comp$fname),"Vowel","SWS")
+continuum.comp$step <- as.numeric(continuum.comp$step)
+continuum.comp$step <- scale(continuum.comp$step)
+continuum.comp$subject2 <- as.factor(continuum.comp$subject2)
+continuum.comp$type <- as.factor(continuum.comp$type)
+
+# models 
+PC.comp.model1 <- mixed(resp1 ~ step*type + (step:type||subject2) + (step||subject2) + (type||subject2),
+                   data=continuum.comp,  family=binomial(link="logit"),method="LRT",expand_re = TRUE,
+                   control = glmerControl(optimizer="bobyqa", calc.derivs = FALSE,optCtrl = list(maxfun = 150000)))
+
+PC.comp.model2 <- mixed(resp1 ~ step*type + (step:type||subject2),
+                   data=continuum.comp,  family=binomial(link="logit"),method="LRT",expand_re = TRUE,
+                   control = glmerControl(optimizer="bobyqa",calc.derivs = FALSE, optCtrl = list(maxfun = 150000)))
+
+PC.comp.model3 <- mixed(resp1 ~ step*type + (step||subject2) + (type||subject2),
+                   data=continuum.comp, family=binomial(link="logit"),method="LRT",expand_re = TRUE,
+                   control = glmerControl(optimizer="bobyqa",calc.derivs = FALSE, optCtrl = list(maxfun = 150000)))
+
+PC.comp.model4 <- mixed(resp1 ~ step*type + (1|subject2),
+                   data=continuum.comp, family=binomial(link="logit"),method="LRT",expand_re = TRUE,
+                   control = glmerControl(optimizer="bobyqa",calc.derivs = FALSE, optCtrl = list(maxfun = 150000)))
+
+anova(PC.comp.model1,PC.comp.model2,PC.comp.model3,PC.comp.model4)
+PC.comp.model1
+
+# quick figure to show this difference (x axis has been mean centered hence its weirdness)
+ggplot(continuum.comp, aes(x=step, y=resp1,color=type)) +
+  geom_point(stat='summary', fun.y='mean', size=3,alpha=0.7) +
+  geom_line(stat='summary', fun.y='mean', size=1.25, alpha=0.7) +
+  scale_y_continuous('Percent /y/ responses', breaks=c(0,0.25,0.5,0.75,1), labels=c(0,25,50,75,100)) +
+  coord_cartesian(ylim=c(0,1)) + 
+  theme(text = element_text(size=20))

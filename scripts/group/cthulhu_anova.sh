@@ -239,5 +239,9 @@ cd /Volumes/netapp/Myerslab/Dave/Cthulhu/data
 -bcontr -0.5 0.5 0.5 -0.5 Boundary-Endpoint \
 -Abcontr 1 : -0.5 0.5 0.5 -0.5 SINE_Boundary-Endpoint \
 -Abcontr 2 : -0.5 0.5 0.5 -0.5 VOWEL_Boundary-Endpoint \
+-Abcontr 2 : 0.5 0.5 -0.5 -0.5 AvsB-vowel \
+-Abcontr 1 : 0.5 0.5 -0.5 -0.5 AvsB-SWS \
+-Abcontr 2 : 0.5 0 0 -0.5 AvsB-endpoints-vowel \
+-Abcontr 1 : 0.5 0 0 -0.5 AvsB-endpoints-SWS \
 \
--bucket SoundTypebyContinuumStepANOVA
+-bucket $top_dir/group/ANOVA/SoundTypebyContinuumStepANOVA

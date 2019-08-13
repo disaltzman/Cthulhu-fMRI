@@ -11,7 +11,7 @@
 %addpath('$ADD FULL PATH TO TOOLBOX AS STRING OR MAKE THIS LINE A COMMENT IF IT IS ALREADY$')
 
 clear; 
-dir_base = '/Volumes/netapp/Research/Myerslab/Dave/Cthulhu/data/';
+dir_base = '/Volumes/netapp/Myerslab/Dave/Cthulhu/data/';
 
 subjects = {'1','2','3','6'};
 subIndsToProcess = 1:length(subjects);
@@ -26,12 +26,12 @@ cfg.software = 'AFNI';
 
 % Set the analysis that should be performed (default is 'searchlight')
 cfg.analysis = 'searchlight';
-cfg.searchlight.radius = 3; % use searchlight of radius 3 (by default in voxels), see more details below
+cfg.searchlight.radius = 10; % use searchlight of radius 3 (by default in voxels), see more details below
 % cfg.decoding.software = 'correlation_classification';
 % cfg.decoding.method = 'classification';
 cfg.decoding.software = 'liblinear';
 cfg.decoding.method = 'classification';
-cfg.decoding.train.classification.model_parameters = '-s 1 -c 1 -q';
+cfg.decoding.train.classification.model_parameters = '-s 1 -c 1.5 -q';
 cfg.scale.method = 'z';
 cfg.scale.estimation = 'all';
 % cfg.decoding.train.classification_kernel.model_parameters = '-s 0 -t 4 -c 0.001 -b 0 -q';
