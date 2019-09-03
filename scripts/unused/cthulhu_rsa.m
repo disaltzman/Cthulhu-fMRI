@@ -43,7 +43,7 @@ cfg.files.mask = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvp
 % If you want to use all betas that are not nuisance regressors or
 % constants, just set
 
-labelnames = {'sinestep1*','sinestep3*','sinestep5*','sinestep7*'};
+labelnames = {'vowelstep1*','vowelstep3*','vowelstep5*','vowelstep7*'};
 
 % since the labels are arbitrary, we will set them randomly to -1 and 1
 labels(1:2:length(labelnames)) = -1;
@@ -54,7 +54,6 @@ labels(2:2:length(labelnames)) =  1;
 cfg.decoding.software = 'similarity';
 cfg.decoding.method = 'classification';
 cfg.decoding.train.classification.model_parameters = 'pearson'; % this is pearson correlation
-cfg.decoding.train.classification.model_parameters = '-s 1 -c 1 -q';
 cfg.scale.method = 'z';
 cfg.scale.estimation = 'all';
 
@@ -62,14 +61,17 @@ cfg.scale.estimation = 'all';
 % a lot of data. (one matrix per voxel for searchlight analyses). In that
 % case, consider using another output measure (such as a similarity matrix
 % to compare the results to)
-cfg.results.output = 'ß';
+% There are two outputs that may make sense: Use 'other' if you want one
+% similarity estimate per condition per run, and use 'other_average' if you
+% want to average betas across runs before calculating the similarity.
+cfg.results.output = 'other_average';
 
 % Set additional parameters manually if you want (see decoding.m or
 % decoding_defaults.m). Below some example parameters that you might want 
 % to use:
 
 % cfg.searchlight.unit = 'mm';
-% cfg.searchlight.radius = 12; % this will yield a searchlight radius of 12mm.
+cfg.searchlight.radius = 3; % this will yield a searchlight radius of 12mm.
 % cfg.searchlight.spherical = 1;
 % cfg.verbose = 2; % you want all information to be printed on screen
 % cfg.decoding.train.classification.model_parameters = '-s 0 -t 0 -c 1 -b 0 -q'; 
@@ -84,8 +86,7 @@ cfg.results.output = 'ß';
 cfg.plot_selected_voxels = 0; % 0: no plotting, 1: every step, 2: every second step, 100: every hundredth step...
 
 % Add additional output measures if you like
-% cfg.results.output = {'accuracy_minus_chance', 'AUC'}
-
+ %cfg.results.output = {'accuracy_minus_chance', 'AUC'}
 %% Nothing needs to be changed below for a standard similarity analysis using all data
 
 % The following function extracts all beta names and corresponding run
@@ -96,10 +97,11 @@ regressor_names = design_from_afni_custom(beta_loc);
 cfg = decoding_describe_data(cfg,labelnames,labels,regressor_names,beta_loc);
 
 % This creates a design in which all data is used to calculate the similarity
-cfg.design = make_design_similarity(cfg); 
+%cfg.design = make_design_similarity(cfg); 
 % Use the next line to use RSA with cross-validation
-% cfg.design = make_design_similarity_cv(cfg); 
+ cfg.design = make_design_similarity_cv(cfg); 
 
 % Run decoding
+cfg.design.unbalanced_data = 'ok';
 results = decoding(cfg);
 end

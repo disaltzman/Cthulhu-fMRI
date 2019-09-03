@@ -13,7 +13,7 @@
 clear; 
 dir_base = '/Volumes/netapp/Myerslab/Dave/Cthulhu/data/';
 
-subjects = {'1','2','3','6'};
+subjects = {'18','20','21','22','24','25','26','27','28','30','31','32','34'};
 subIndsToProcess = 1:length(subjects);
 
 for s = subIndsToProcess
@@ -26,7 +26,7 @@ cfg.software = 'AFNI';
 
 % Set the analysis that should be performed (default is 'searchlight')
 cfg.analysis = 'searchlight';
-cfg.searchlight.radius = 10; % use searchlight of radius 3 (by default in voxels), see more details below
+cfg.searchlight.radius = 3; % use searchlight of radius 3 (by default in voxels), see more details below
 % cfg.decoding.software = 'correlation_classification';
 % cfg.decoding.method = 'classification';
 cfg.decoding.software = 'liblinear';
@@ -37,7 +37,7 @@ cfg.scale.estimation = 'all';
 % cfg.decoding.train.classification_kernel.model_parameters = '-s 0 -t 4 -c 0.001 -b 0 -q';
 
 % Set the output directory where data will be saved, e.g. 'c:\exp\results\buttonpress'
-cfg.results.dir = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvpa/searchlight/AvsB_vowel-20mm'];
+cfg.results.dir = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvpa/searchlight/AvsB_vowel-endpoints'];
 
 % Set the full path to the files where your coefficients for each run are stored e.g. 
 % {'/misc/data/mystudy/results1+orig.BRIK','/misc/data/mystudy/results2+orig.BRIK',...}
@@ -58,9 +58,7 @@ cfg.files.mask = [dir_base 'cth' subjects{s} '/' 'cth' subjects{s} '.preproc_mvp
 % don't remember the names? -> run display_regressor_names(beta_loc)
 
 labelname1 = 'vowelstep1*';
-labelname2 = 'vowelstep3*';
-labelname3 = 'vowelstep5*';
-labelname4 = 'vowelstep7*';
+labelname2 = 'vowelstep7*';
 
 
 %% Set additional parameters
@@ -100,7 +98,7 @@ cfg.plot_selected_voxels = 0; % 0: no plotting, 1: every step, 2: every second s
 regressor_names = design_from_afni_custom(beta_loc);
 
 % Extract all information for the cfg.files structure (labels will be [1 -1] )
-cfg = decoding_describe_data(cfg,{labelname1 labelname2 labelname3 labelname4},[1 1 -1 -1],regressor_names,beta_loc);
+cfg = decoding_describe_data(cfg,{labelname1 labelname2},[1 -1],regressor_names,beta_loc);
 
 % This creates the leave-one-run-out cross validation design:
 cfg.design = make_design_cv(cfg); 
