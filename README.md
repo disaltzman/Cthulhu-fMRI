@@ -1,32 +1,21 @@
-# Cthulhu fMRI Subject Processing Pipeline
+## Overview
 
-## Univariate
-### Step 1
+This repository contains the behavioral training data, fMRI behavioral task data, and scripts used to conduct all of the analyses found in the manuscript of *"Articulatory vs. abstract category representations for speech in the dorsal stream"*. 
 
-Download DICOM files from BIRC server
+Given the technical challeneges associated with hosting an fMRI dataset like this, all imaging data will be made available upon request. 
 
-### Step 2
+### Behavioral Data & Analyses
 
-Rename files, create _MP_ and _briks_ folders, and run `cthulhu_pre_preprocessing.sh`
+In the directory **behavioral-training**, you will find the raw data from all of the 26 participants included in the study. 
 
-### Step 3
+The naming scheme works as follows: *subject-A0B.csv*, where *A* is the participant's ID and *B* is the testing session (e.g., 101 indicates participant 1, session 1). Each participant has a CSV file that is named *subject-SX03.csv*, which indicates the data from the sine-wave training.
 
-Take `.csv` output from fMRI OpenSesame file and add a column called _timing_. Fill this column in with starting at the first run with the time _1.285_ continuing to _319.285_. Repeat for each block.
+The R script `cthulhu_manuscript_analyses.R` is commented and will allow you to perform each of the analyses in the manuscript, as well as generate figures 3 & 4. 
 
-### Step 4
+### fMRI Catch Task Data
 
-Use the `condensend_timing_script.R` to create timing files for the subject. It should create ten `.txt` files in total.
+In the directory **fMRI-behavioral**, you will find the output from OpenSesame showing the stimuli presented and participants responses during the task. In addition, you will find the scripts used to create the timing files (which will be included pre-generated with the fMRI data) that were used in the fMRI preprocessing.
 
-Then run `create_individ_run_timing.sh` to create individual run timing files for each of the 10 regressors. These will get used in the MVPA preprocessing.
+### fMRI Analysis Scripts
 
-### Step 5
-
-Run the script `cthulhu_preprocessing_with_FA.sh` to complete univariate preprocessing for the subject. 
-
-## MVPA
-
-### Step 1
-Using the timing files created in Step 4 of the univariate preprocessing, run the script `cthulhu_mvpa_preprocessing_Mumford.sh` to complete MVPA preprocessing using `3dLSS` instead of `3dDeconvolve` to estimate beta weights.
-
-### Step 2
-Using `MATLAB`, run various TDT decoding scripts (e.g., `decoding_cthulhu_mumford`) to get subject-level classsification maps. Nothing should need to be changed in these scripts other than the subject number.
+Though we do not have the fMRI data itself available here, we have made our preprocessing, MVPA, and group level analysis scripts available in the directory **fMRI-scripts**. 

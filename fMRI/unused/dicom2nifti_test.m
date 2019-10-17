@@ -1,5 +1,0 @@
-dicom2nifti('autodetect','yes','dicom_dir', '/Volumes/netapp/Myerslab/Dave/Cthulhu/data/cth8', 'subject_dir', '/Volumes/netapp/Myerslab/Dave/Cthulhu/data/cth8/mvpa');
-dicom2nifti('autodetect','yes','dicom_dir', '/Volumes/netapp/Myerslab/Dave/Cthulhu/data/cth9', 'subject_dir', '/Volumes/netapp/Myerslab/Dave/Cthulhu/data/cth9/mvpa');
-dicom2nifti('autodetect','yes','dicom_dir', '/Volumes/netapp/Myerslab/Dave/Cthulhu/data/cth10', 'subject_dir', '/Volumes/netapp/Myerslab/Dave/Cthulhu/data/cth10/mvpa');
-dicom2nifti('autodetect','yes','dicom_dir', '/Volumes/netapp/Myerslab/Dave/Cthulhu/data/cth11', 'subject_dir', '/Volumes/netapp/Myerslab/Dave/Cthulhu/data/cth11/mvpa');
-dicom2nifti('autodetect','yes','dicom_dir', '/Volumes/netapp/Myerslab/Dave/Cthulhu/data/cth12', 'subject_dir', '/Volumes/netapp/Myerslab/Dave/Cthulhu/data/cth12/mvpa');
