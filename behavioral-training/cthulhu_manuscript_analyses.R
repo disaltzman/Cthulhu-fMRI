@@ -153,6 +153,16 @@ PC.fig<-ggplot(stats, aes(x=as.numeric(step), y=resp1,color=factor(session))) +
   coord_cartesian(ylim=c(0,1)) + 
   theme(text = element_text(size=20))
 
+# RT figure.
+stats <- Rmisc::summarySE(continuum.vowel, measurevar="rt",groupvars = c("step","session"))
+
+ggplot(stats, aes(x=as.numeric(step),y=rt,color=factor(session))) +
+  geom_point(stat='summary', fun.y='mean', size=2.5) +
+  geom_line(stat='summary', fun.y='mean', size=1.5) +
+  geom_errorbar(aes(ymin=rt-se,ymax=rt+se),width=.5) +
+  scale_x_continuous('Continuum step', breaks=c(1:7)) +
+  theme(text = element_text(size=20))
+
 # curve fitting to get boundaries
 continuum.vowel$subject2 <- as.numeric(continuum.vowel$subject2)
 continuum.vowel$step <- as.numeric(continuum.vowel$step)
@@ -653,9 +663,37 @@ sine_PC_fig <- ggplot(stats_sine, aes(x=as.numeric(step),y=resp1)) +
   theme(text = element_text(size=20)) +
   labs(y=expression(Percent~'/y/'['Sine']~responses))
 
-# Set up mixed-effects models.
-continuum.sine$step <- scale(as.numeric(continuum.sine$step))
+# RT figure.
+stats_sine <- Rmisc::summarySE(continuum.sine, measurevar="rt",groupvars = c("step"))
 
+ggplot(stats_sine, aes(x=as.numeric(step),y=rt)) +
+  geom_point(stat='summary', fun.y='mean', size=2.5) +
+  geom_line(stat='summary', fun.y='mean', size=1.5) +
+  geom_errorbar(aes(ymin=rt-se,ymax=rt+se),width=.5) +
+  scale_x_continuous('Continuum step', breaks=c(1:7)) +
+  theme(text = element_text(size=20))
+
+# Compare index of "categoricality" by doing t.test on slopes of psychometric functions.
+boundaries <- subset(boundaries,session==3)
+boundaries$sine_slopes <- sine.boundaries$Slope
+t.test(boundaries$Slope,boundaries$sine_slopes,paired=TRUE)
+
+# Combine RT stats to make one figure.
+stats_sine$version <- "Sine-wave"
+stats_sine$session <- 3
+stats$version <- "Vowel"
+rt_combined <- rbind(stats,stats_sine)
+
+ggplot(rt_combined, aes(x=as.numeric(step),color=as.factor(session),y=rt)) +
+  geom_point(stat='summary', fun.y='mean', size=2.5) +
+  geom_line(stat='summary', fun.y='mean', size=1.5) +
+  geom_errorbar(aes(ymin=rt-se,ymax=rt+se),width=.5) +
+  scale_x_continuous('Continuum step', breaks=c(1:7)) +
+  facet_wrap(~version) +
+  theme(text = element_text(size=20),legend.position = "NONE")
+
+
+# Set up mixed-effects models.
 PC.sine.model1 <- mixed(resp1 ~ step + (step|subject2), family=binomial(link="logit"),data=continuum.sine,method="LRT")
 PC.sine.model2 <- mixed(resp1 ~ step + (1|subject2), family=binomial(link="logit"),data=continuum.sine,method="LRT")
 

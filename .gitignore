@@ -10,3 +10,5 @@ fMRI/.DS_Store
 *.1D
 
 scripts/preprocessing/Decon\.REML_cmd
+
+fMRI-behavioral/.DS_Store
