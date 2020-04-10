@@ -12,12 +12,14 @@ library(janitor)
 # Plots.
 library(ggplot2)
 library(cowplot)
+library(RColorBrewer)
 
 # Analyses.
 library(afex)
 library(lme4)
 library(lmerTest)
 library(quickpsy)
+library(lsmeans)
 
 theme_set(theme_bw())
 
@@ -82,7 +84,17 @@ vowel.training.fig<-ggplot(training.stats.subj,aes(x=block,y=correct_response)) 
   scale_color_brewer('Training day',palette="Set1") +
   scale_shape_discrete('Training\nblock\nrepetitions') +
   coord_cartesian(ylim=c(0.4,1)) +
-  theme(text=element_text(size=20))
+  theme(text=element_text(size=16))
+
+# Day 3 figure for comparison.
+vow_train_day3<-ggplot(subset(training.stats.subj,session==3),aes(x=block,y=correct_response)) +
+  geom_point(aes(x=block,shape=factor(blocks.complete)),position = position_dodge(width=1)) + 
+  geom_bar(data=subset(training.stats.avg,session==3),stat="identity",fill="#4DAF4A",alpha=0.5,position="dodge") +
+  scale_y_continuous('Percent accuracy',breaks=c(0,0.25,0.5,0.75,1),labels=c(0,25,50,75,100)) +
+  scale_x_discrete('Training level',labels=c('Easy 1-7','Medium 2-6','Hard 3-5')) +
+  scale_shape_discrete('Training\nblock\nrepetitions') +
+  coord_cartesian(ylim=c(0.4,1)) +
+  theme(text=element_text(size=16))
 
 # Set up mixed-effects models using afex.
 training.vowel$block <- as.factor(training.vowel$block)
@@ -151,7 +163,7 @@ PC.fig<-ggplot(stats, aes(x=as.numeric(step), y=resp1,color=factor(session))) +
   scale_y_continuous('Percent /y/ responses', breaks=c(0,0.25,0.5,0.75,1), labels=c(0,25,50,75,100)) +
   scale_color_brewer('Training day', labels=c('1','2','3'),palette="Set1") +
   coord_cartesian(ylim=c(0,1)) + 
-  theme(text = element_text(size=20))
+  theme(text = element_text(size=16))
 
 # RT figure.
 stats <- Rmisc::summarySE(continuum.vowel, measurevar="rt",groupvars = c("step","session"))
@@ -161,7 +173,7 @@ ggplot(stats, aes(x=as.numeric(step),y=rt,color=factor(session))) +
   geom_line(stat='summary', fun.y='mean', size=1.5) +
   geom_errorbar(aes(ymin=rt-se,ymax=rt+se),width=.5) +
   scale_x_continuous('Continuum step', breaks=c(1:7)) +
-  theme(text = element_text(size=20))
+  theme(text = element_text(size=16))
 
 # curve fitting to get boundaries
 continuum.vowel$subject2 <- as.numeric(continuum.vowel$subject2)
@@ -490,14 +502,19 @@ ifelse(dprime_rb_lineplot$session==1&dprime_rb_lineplot$block=="posttest_discrim
 ifelse(dprime_rb_lineplot$session==2&dprime_rb_lineplot$block=="posttest_discrimination",5,
 ifelse(dprime_rb_lineplot$session==3&dprime_rb_lineplot$block=="posttest_discrimination",6,""))))))
 
+# Add factor to allow for translucent intervening lines and bold pre-test day 1 and post-test day 3 lines.
+dprime_rb_lineplot$plotting2 <- as.factor(ifelse(dprime_rb_lineplot$session==1&dprime_rb_lineplot$block=="pretest_discrimination"|
+                                                   dprime_rb_lineplot$session==3&dprime_rb_lineplot$block=="posttest_discrimination",1,0))
+
 # d' relative boundary figure.
 dprime.relative.fig<-ggplot(dprime_rb_lineplot,aes(x=relative.bound,y=dprime,group=plotting,color=session)) +
-  geom_point(aes(color=session),stat='summary', fun.y='mean', size=3.5) +
-  geom_line(aes(color=session,linetype=block),stat='summary', fun.y='mean', size=2) +
-  geom_errorbar(aes(ymin=dprime-se,ymax=dprime+se,color=session),width=.25,size=1.25) +
+  geom_point(aes(color=session,alpha=plotting2),stat='summary', fun.y='mean', size=3.5) +
+  geom_line(aes(color=session,linetype=block,alpha=plotting2),stat='summary', fun.y='mean', size=2) +
+  geom_errorbar(aes(ymin=dprime-se,ymax=dprime+se,color=session,alpha=plotting2),width=.25,size=1.25) +
   scale_color_brewer('Training day',palette="Set1") +
   scale_linetype_discrete('Block',labels=c("Post-test","Pre-test")) +
-  theme(text = element_text(size=20)) + 
+  scale_alpha_manual(guide=FALSE,values=c(0.25,1)) +
+  theme(text = element_text(size=16)) + 
   xlab("Token") + ylab("d' score")
 
 # d' acoustic boundary figure.
@@ -510,15 +527,31 @@ ifelse(dprime_ab_lineplot$session==1&dprime_ab_lineplot$block=="posttest_discrim
 ifelse(dprime_ab_lineplot$session==2&dprime_ab_lineplot$block=="posttest_discrimination",5,
 ifelse(dprime_ab_lineplot$session==3&dprime_ab_lineplot$block=="posttest_discrimination",6,""))))))
 
+# Add factor to allow for translucent intervening lines and bold pre-test day 1 and post-test day 3 lines.
+dprime_ab_lineplot$plotting2 <- as.factor(ifelse(dprime_ab_lineplot$session==1&dprime_ab_lineplot$block=="pretest_discrimination"|
+                                         dprime_ab_lineplot$session==3&dprime_ab_lineplot$block=="posttest_discrimination",1,0))
+
 dprime.acoustic.fig <- ggplot(dprime_ab_lineplot,aes(x=stimulus,y=dprime,group=plotting,color=session)) +
+  geom_point(aes(color=session,alpha=plotting2),stat='summary', fun.y='mean', size=3.5) +
+  geom_line(aes(color=session,linetype=block,alpha=plotting2),stat='summary', fun.y='mean', size=2) +
+  geom_errorbar(aes(ymin=dprime-se,ymax=dprime+se,color=session,alpha=plotting2),width=.25,size=1.25) +
+  scale_color_brewer('Training day',palette="Set1") +
+  scale_linetype_discrete('Block',labels=c("Post-test","Pre-test")) +
+  scale_alpha_manual(guide=FALSE,values=c(0.25,1)) +
+  theme(text = element_text(size=16)) + 
+  xlab("Stimulus") + ylab("d' score")
+
+# Just pre-test and final post-test for clarity.
+day3_vow_discrim<-ggplot(subset(dprime_ab_lineplot,session==1&block=="pretest_discrimination"|session==3&block=="posttest_discrimination"),
+              aes(x=stimulus,y=dprime,group=plotting,color=session)) +
   geom_point(aes(color=session),stat='summary', fun.y='mean', size=3.5) +
   geom_line(aes(color=session,linetype=block),stat='summary', fun.y='mean', size=2) +
   geom_errorbar(aes(ymin=dprime-se,ymax=dprime+se,color=session),width=.25,size=1.25) +
-  scale_color_brewer('Training day',palette="Set1") +
+  scale_color_manual('Training day',values=c("#E41A1C","#4DAF4A")) +
   scale_linetype_discrete('Block',labels=c("Post-test","Pre-test")) +
-  theme(text = element_text(size=20)) + 
+  theme(text = element_text(size=16)) + 
   xlab("Stimulus") + ylab("d' score")
-
+  
 # Set up mixed-effects model on d' with relative boundary.
 dprime.relative.bound$session <- as.factor(dprime.relative.bound$session)
 dprime.relative.bound$discrim.type <- as.factor(dprime.relative.bound$discrim.type)
@@ -545,7 +578,7 @@ anova(lmem.relative.bound1,lmem.relative.bound2,lmem.relative.bound3,lmem.relati
 lmem.relative.bound4
 
 # mixed effects model on dprime with non-relative boundary (2-4 and 3-5 as BC)
-dprime.relative.bound$acoustic.bound <- ifelse(dprime.relative.bound$stimulus=="2-4"|dprime.relative.bound$stimulus=="3-5","BC","WC")
+dprime.relative.bound$acoustic.bound <- ifelse(dprime.relative.bound$stimulus=="3-5","BC","WC")
 
 # set up factors
 dprime.relative.bound$session <- as.factor(dprime.relative.bound$session)
@@ -573,11 +606,11 @@ data=dprime.relative.bound,expand_re = TRUE,
 control = lmerControl(optimizer="bobyqa",calc.derivs = FALSE, optCtrl = list(maxfun = 150000)))
 
 # compare models
-anova(lmem.acoustic.bound1,lmem.acoustic.bound3,lmem.acoustic.bound4,lmem.acoustic.bound5)
-lmem.acoustic.bound3
+anova(lmem.acoustic.bound1,lmem.acoustic.bound2,lmem.acoustic.bound3,lmem.acoustic.bound4,lmem.acoustic.bound5)
+lmem.acoustic.bound5
 
 # Compare acoustic boundary model and relative boundary model.
-anova(lmem.acoustic.bound3,lmem.relative.bound4) # acoustic boundary model has superior fit.
+anova(lmem.acoustic.bound5,lmem.relative.bound4) # acoustic boundary model has superior fit.
 
 # SINE TRAINING ####
 
@@ -611,7 +644,7 @@ sine_training_fig <- ggplot(training.stats.subj,aes(x=block,y=correct_response))
   scale_x_discrete('Training level',labels=c('Easy 1-7','Medium 2-6','Hard 3-5')) +
   scale_shape_discrete('Training\nblock\nrepetitions') +
   coord_cartesian(ylim=c(0.4,1)) +
-  theme(text=element_text(size=20))
+  theme(text=element_text(size=16))
 
 # Set up mixed-effects models.
 training.sine$block <- as.factor(training.sine$block)
@@ -660,7 +693,7 @@ sine_PC_fig <- ggplot(stats_sine, aes(x=as.numeric(step),y=resp1)) +
   scale_x_continuous('Continuum step', breaks=c(1:7)) +
   scale_y_continuous(breaks=c(0,0.25,0.5,0.75,1), labels=c(0,25,50,75,100)) +
   coord_cartesian(ylim=c(0,1)) + 
-  theme(text = element_text(size=20)) +
+  theme(text = element_text(size=16)) +
   labs(y=expression(Percent~'/y/'['Sine']~responses))
 
 # RT figure.
@@ -671,7 +704,7 @@ ggplot(stats_sine, aes(x=as.numeric(step),y=rt)) +
   geom_line(stat='summary', fun.y='mean', size=1.5) +
   geom_errorbar(aes(ymin=rt-se,ymax=rt+se),width=.5) +
   scale_x_continuous('Continuum step', breaks=c(1:7)) +
-  theme(text = element_text(size=20))
+  theme(text = element_text(size=16))
 
 # Compare index of "categoricality" by doing t.test on slopes of psychometric functions.
 boundaries <- subset(boundaries,session==3)
@@ -690,7 +723,7 @@ ggplot(rt_combined, aes(x=as.numeric(step),color=as.factor(session),y=rt)) +
   geom_errorbar(aes(ymin=rt-se,ymax=rt+se),width=.5) +
   scale_x_continuous('Continuum step', breaks=c(1:7)) +
   facet_wrap(~version) +
-  theme(text = element_text(size=20),legend.position = "NONE")
+  theme(text = element_text(size=16),legend.position = "NONE")
 
 
 # Set up mixed-effects models.
@@ -967,7 +1000,7 @@ sine_dprime_relative_fig <- ggplot(dprime_rb_lineplot,aes(x=relative.bound,y=dpr
   scale_linetype_discrete('Block',labels=c("Post-test","Pre-test")) +
   ylab("d' score") +
   xlab('Token') +
-  theme(text = element_text(size=20))
+  theme(text = element_text(size=16))
 
 # Acoustic boundary d' figure.
 dprime_lineplot <- Rmisc::summarySE(dprime.sine.stimulus, measurevar="dprime",groupvars = c("stimulus","block"))
@@ -979,22 +1012,21 @@ sine_dprime_fig <- ggplot(dprime_lineplot,aes(x=stimulus,y=dprime,group=block)) 
   scale_linetype_discrete('Block',labels=c("Post-test","Pre-test")) +
   ylab("d' score") +
   xlab('Stimulus') +
-  theme(text = element_text(size=20))
+  theme(text = element_text(size=16))
 
 # Set up mixed-effects model on dprime with acoustic boundary (2-4 and 3-5 as BC).
-dprimesine.relative.bound$acoustic.bound <- ifelse(dprimesine.relative.bound$stimulus=="2-4"|dprimesine.relative.bound$stimulus=="3-5","BC","WC")
+dprimesine.relative.bound$acoustic.bound <- ifelse(dprimesine.relative.bound$stimulus=="3-5","BC","WC")
 dprimesine.relative.bound$acoustic.bound <- as.factor(dprimesine.relative.bound$acoustic.bound)
 dprimesine.relative.bound$block <- as.factor(dprimesine.relative.bound$block)
 
 lmem.acoustic.bound1 <- mixed(dprime ~ acoustic.bound*block + 
                                    (block:acoustic.bound||subject2) + (block||subject2) + (acoustic.bound||subject2),
                                  data=dprimesine.relative.bound,expand_re = TRUE,
-                                 control = lmerControl(optimizer="bobyqa",calc.derivs=FALSE,optCtrl = list(maxfun = 150000)))
+                                 control = lmerControl(optimizer="bobyqa",calc.derivs=FALSE,optCtrl = list(maxfun = 1500000)))
 
-# lmem.acoustic.bound2 <- mixed(dprime ~ acoustic.bound*block + (block||subject2) + (acoustic.bound||subject2),
-#                                     data=dprimesine.relative.bound,expand_re = TRUE,
-#                                  control = lmerControl(optimizer="bobyqa",calc.derivs=FALSE, optCtrl = list(maxfun = 1000000)))
-# does not converge
+lmem.acoustic.bound2 <- mixed(dprime ~ acoustic.bound*block + (block||subject2) + (acoustic.bound||subject2),
+                                    data=dprimesine.relative.bound,expand_re = TRUE,
+                                 control = lmerControl(optimizer="bobyqa",calc.derivs=FALSE, optCtrl = list(maxfun = 15000000)))
 
 lmem.acoustic.bound3 <- mixed(dprime ~ acoustic.bound*block + 
                                 (block:acoustic.bound||subject2),
@@ -1035,7 +1067,7 @@ lmem.relative.bound2 <- mixed(dprime ~ discrim.type*block +
                               data=dprimesine.relative.bound,expand_re = TRUE,
                               control = lmerControl(optimizer="bobyqa",calc.derivs=FALSE,optCtrl = list(maxfun = 150000)))
 
-# lmem.relative.bound3 <- mixed(dprime ~ discrim.type*block + 
+# lmem.relative.bound3 <- mixed(dprime ~ discrim.type*block +
 #                                 (block||subject2) + (discrim.type||subject2),
 #                               data=dprimesine.relative.bound,expand_re = TRUE,
 #                               control = lmerControl(optimizer="bobyqa",calc.derivs=FALSE,optCtrl = list(maxfun = 500000)))
@@ -1062,10 +1094,14 @@ anova(lmem.relative.bound1,lmem.relative.bound2,lmem.relative.bound4,lmem.relati
 # Results from best model.
 lmem.relative.bound1
 
+# Compare fit of relative and acoustic boundary models.
+anova(lmem.relative.bound1,lmem.acoustic.bound1)
+
 # MANUSCRIPT FIGURES ####
 
 # vowel d' figure
 plot_grid(vowel.training.fig,PC.fig,dprime.acoustic.fig,dprime.relative.fig,labels=c("A","B","C","D"),nrow = 2)
+ggsave("vowel_behavioral.pdf",dpi="retina",width=8.25,height=8,units="in")
 
 # sine behavioral figure 
 align_leftcol5 <- align_plots(sine_training_fig,sine_dprime_fig, align="hv", axis="tblr")
@@ -1082,7 +1118,7 @@ training <- subset(df,grepl("training",block))
 training <- subset(training,session!=4)
 
 # Add stimulus type variable.
-training$type <- ifelse(training$session=="S3","SWS","Vowel")
+training$type <- ifelse(training$session=="S3","Sine-wave","Vowel")
 
 # Set up model for training comparison
 training$block <- as.factor(training$block)
@@ -1121,7 +1157,7 @@ training.comp1
 continuum <- subset(df,df$block=="continuum")
 
 # subset vowel sessions
-continuum.vowel <- subset(continuum,continuum$session!="S3")
+continuum.vowel <- subset(continuum,continuum$session==3)
 
 # drop NA trials and trials where people hit the wrong button
 continuum.vowel <- subset(continuum.vowel,continuum.vowel$response!="None")
@@ -1160,6 +1196,7 @@ continuum.sineCB2 <- subset(continuum.sine,continuum.sine$cb=="cb2")
 continuum.sineCB1$resp1 <- ifelse(continuum.sineCB1$response=="a",1,0)
 continuum.sineCB2$resp1 <- ifelse(continuum.sineCB2$response=="a",0,1)
 continuum.sine <- rbind(continuum.sineCB1,continuum.sineCB2)
+rm(continuum.sineCB1,continuum.sineCB2,continuum.vowelCB1,continuum.vowelCB2)
 
 # create 'step' variable
 continuum.sine$step <- substr(continuum.sine$fname,9,9)
@@ -1170,11 +1207,12 @@ continuum.comp <- rbind(continuum.sine,continuum.vowel)
   
 # prep variables for model
 continuum.comp <- subset(continuum.comp,continuum.comp$session=="3"|continuum.comp$session=="S3")
-continuum.comp$type <- ifelse(grepl("vowel",continuum.comp$fname),"Vowel","SWS")
+continuum.comp$type <- ifelse(grepl("vowel",continuum.comp$fname),"Vowel","Sine-wave")
 continuum.comp$step <- as.numeric(continuum.comp$step)
-continuum.comp$step <- scale(continuum.comp$step)
+continuum.comp$step <- round(scale(continuum.comp$step,center=TRUE,scale=TRUE),digits=2)
 continuum.comp$subject2 <- as.factor(continuum.comp$subject2)
 continuum.comp$type <- as.factor(continuum.comp$type)
+continuum.comp$fname <- as.factor(continuum.comp$fname)
 
 # models 
 PC.comp.model1 <- mixed(resp1 ~ step*type + (step:type||subject2) + (step||subject2) + (type||subject2),
@@ -1196,10 +1234,143 @@ PC.comp.model4 <- mixed(resp1 ~ step*type + (1|subject2),
 anova(PC.comp.model1,PC.comp.model2,PC.comp.model3,PC.comp.model4)
 PC.comp.model1
 
-# quick figure to show this difference (x axis has been mean centered hence its weirdness)
+# Post-hoc testing of significant interaction between step and stimulus type
+lsm<-lsmeans(PC.comp.model1, ~ type|step, at = list(step=c(-1.5,-1,-0.5,0,0.5,1.0,1.5), adjust = "bonferroni"))
+pairs(lsm)
+
+# quick figure to show this difference (x axis has been mean centered hence its weirdness).
 ggplot(continuum.comp, aes(x=step, y=resp1,color=type)) +
   geom_point(stat='summary', fun.y='mean', size=3,alpha=0.7) +
   geom_line(stat='summary', fun.y='mean', size=1.25, alpha=0.7) +
   scale_y_continuous('Percent /y/ responses', breaks=c(0,0.25,0.5,0.75,1), labels=c(0,25,50,75,100)) +
   coord_cartesian(ylim=c(0,1)) + 
-  theme(text = element_text(size=20))
+  theme(text = element_text(size=16))
+
+# RT analysis to assess categoricity.
+
+# Backtransform "step"
+continuum.comp$step <- continuum.comp$step * attr(continuum.comp$step, 'scaled:scale') + attr(continuum.comp$step, 'scaled:center')
+
+# SWS is overall slower than Vowel, so Z score within condition at each step.
+continuum.comp <- continuum.comp %>% 
+  group_by(type) %>% 
+  mutate(zRT=scale(rt,center=TRUE,scale=TRUE))
+
+# plot this
+rt_plot <- Rmisc::summarySE(continuum.comp, measurevar="zRT",groupvars = c("step","step2","type"))
+
+ggplot(rt_plot, aes(x=as.numeric(step),y=zRT,color=factor(type))) +
+  geom_point(stat='summary', fun.y='mean', size=2.5) +
+  geom_line(stat='summary', fun.y='mean', size=1.5) +
+  geom_errorbar(aes(ymin=zRT-se,ymax=zRT+se),width=.5) +
+  scale_x_continuous('Continuum step', breaks=c(1:7)) +
+  scale_color_manual("Stimulus set",values = c("Black","#4DAF4A")) +
+  theme(text = element_text(size=16)) + ylab("Reaction time (z-score)")
+
+# Analyze with mixed effects model
+continuum.comp$step2 <- I(continuum.comp$step^2)
+
+rt_comp1 <- mixed(zRT ~ type*step2 + (type:step2||subject2) + (type||subject2) + (step2||subject2),
+                  data=continuum.comp,expand_re = TRUE,
+                  control = lmerControl(optimizer="bobyqa",calc.derivs=FALSE,optCtrl = list(maxfun = 150000)))
+
+rt_comp2 <- mixed(zRT ~ type*step2 + (type:step2||subject2),
+                  data=continuum.comp,expand_re = TRUE,
+                  control = lmerControl(optimizer="bobyqa",calc.derivs=FALSE,optCtrl = list(maxfun = 150000)))
+
+rt_comp3 <- mixed(zRT ~ type*step2 + (type||subject2) + (step2||subject2),
+                  data=continuum.comp,expand_re = TRUE,
+                  control = lmerControl(optimizer="bobyqa",calc.derivs=FALSE,optCtrl = list(maxfun = 150000)))
+
+rt_comp4 <- mixed(zRT ~ type*step2 + (step2||subject2),
+                  data=continuum.comp,expand_re = TRUE,
+                  control = lmerControl(optimizer="bobyqa",calc.derivs=FALSE,optCtrl = list(maxfun = 150000)))
+
+rt_comp5 <- mixed(zRT ~ type*step2 + (type||subject2),
+                  data=continuum.comp,expand_re = TRUE,
+                  control = lmerControl(optimizer="bobyqa",calc.derivs=FALSE,optCtrl = list(maxfun = 150000)))
+
+rt_comp6 <- mixed(zRT ~ type*step2 + (1|subject2),
+                  data=continuum.comp,expand_re = TRUE,
+                  control = lmerControl(optimizer="bobyqa",calc.derivs=FALSE,optCtrl = list(maxfun = 150000)))
+
+# Compare models
+anova(rt_comp1,rt_comp2,rt_comp3,rt_comp4,rt_comp5,rt_comp6)
+rt_comp3
+
+# Comparison of slopes for categoricity
+
+# Get vowel slopes ready
+load("boundaries.Rda")
+boundaries <- subset(boundaries,session==3)
+boundaries$type <- "Vowel"
+boundaries$session <- NULL
+
+# Combine with Sine-wave data
+load("sine.boundaries.Rda")
+sine.boundaries$type <- "Sine-wave"
+boundaries <- rbind(boundaries,sine.boundaries)
+
+# Analyze
+slope_comp <- mixed(Slope ~ type + (1|subject2),data=boundaries,expand_re = TRUE,
+                    control = lmerControl(optimizer="bobyqa",calc.derivs=FALSE,optCtrl = list(maxfun = 150000)))
+slope_comp
+
+# Comparison of discrimination data.
+
+# Add variables to data to ease combining.
+dprimesine.relative.bound$session <- 3
+dprimesine.relative.bound$type <- "Sine"
+dprime.relative.bound$type <- "Vowel"
+
+# Combine discrim data.
+combined_discrim <- rbind(dprime.relative.bound,dprimesine.relative.bound)
+
+# Set up models.
+combined_discrim$type <- as.factor(combined_discrim$type)
+
+comb.discrim.mod1 <- mixed(dprime ~ discrim.type*block*type + 
+                             (block:discrim.type:type||subject2) + (block||subject2) + (discrim.type||subject2) + (type||subject2),
+                           data=subset(combined_discrim,session==3),expand_re = TRUE,
+                           control = lmerControl(optimizer="bobyqa",calc.derivs=FALSE,optCtrl = list(maxfun = 1500000)))
+
+comb.discrim.mod2 <- mixed(dprime ~ discrim.type*block*type + 
+                             (block||subject2) + (discrim.type||subject2) + (type||subject2),
+                           data=subset(combined_discrim,session==3),expand_re = TRUE,
+                           control = lmerControl(optimizer="bobyqa",calc.derivs=FALSE,optCtrl = list(maxfun = 1500000)))
+
+comb.discrim.mod3 <- mixed(dprime ~ discrim.type*block*type + 
+                             (discrim.type||subject2) + (type||subject2),
+                           data=subset(combined_discrim,session==3),expand_re = TRUE,
+                           control = lmerControl(optimizer="bobyqa",calc.derivs=FALSE,optCtrl = list(maxfun = 1500000)))
+
+comb.discrim.mod4 <- mixed(dprime ~ discrim.type*block*type + 
+                             (type||subject2),
+                           data=subset(combined_discrim,session==3),expand_re = TRUE,
+                           control = lmerControl(optimizer="bobyqa",calc.derivs=FALSE,optCtrl = list(maxfun = 1500000)))
+
+comb.discrim.mod5 <- mixed(dprime ~ discrim.type*block*type + 
+                             (discrim.type||subject2),
+                           data=subset(combined_discrim,session==3),expand_re = TRUE,
+                           control = lmerControl(optimizer="bobyqa",calc.derivs=FALSE,optCtrl = list(maxfun = 1500000)))
+
+comb.discrim.mod6 <- mixed(dprime ~ discrim.type*block*type + 
+                             (block||subject2),
+                           data=subset(combined_discrim,session==3),expand_re = TRUE,
+                           control = lmerControl(optimizer="bobyqa",calc.derivs=FALSE,optCtrl = list(maxfun = 1500000)))
+
+
+comb.discrim.mod7 <- mixed(dprime ~ discrim.type*block*type + 
+                             (1|subject2),
+                           data=subset(combined_discrim,session==3),expand_re = TRUE,
+                           control = lmerControl(optimizer="bobyqa",calc.derivs=FALSE,optCtrl = list(maxfun = 1500000)))
+
+anova(comb.discrim.mod2,comb.discrim.mod4,comb.discrim.mod5,comb.discrim.mod6,comb.discrim.mod7)
+comb.discrim.mod2
+
+# Post-hoc testing of significant interactions
+lsm2<-lsmeans(comb.discrim.mod2, ~ discrim.type|type,adjust = "bonferroni")
+pairs(lsm2)
+
+lsm3<-lsmeans(comb.discrim.mod2, ~ block|type,adjust = "bonferroni")
+pairs(lsm3)
