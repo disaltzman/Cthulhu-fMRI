@@ -70,9 +70,7 @@ training.stats.subj$blocks.complete <- ifelse(training.stats.subj$N<62,1,
                                                 ifelse(training.stats.subj$N>120&training.stats.subj$N<182,3,NA)))
 
 # Summarize training performance across subjects.
-training.stats.avg <- training.stats.subj %>% 
-  group_by(block,session) %>% 
-  summarise(correct_response=mean(correct_response))
+training.stats.avg <- Rmisc::summarySE(data=training.vowel, measurevar="correct_response",groupvars=c("block","session"))
 
 # Training performance figure.
 vowel.training.fig<-ggplot(training.stats.subj,aes(x=block,y=correct_response)) +
@@ -577,7 +575,7 @@ control = lmerControl(optimizer="bobyqa",calc.derivs = FALSE, optCtrl = list(max
 anova(lmem.relative.bound1,lmem.relative.bound2,lmem.relative.bound3,lmem.relative.bound4)
 lmem.relative.bound4
 
-# mixed effects model on dprime with non-relative boundary (2-4 and 3-5 as BC)
+# mixed effects model on dprime with non-relative boundary (3-5 as BC)
 dprime.relative.bound$acoustic.bound <- ifelse(dprime.relative.bound$stimulus=="3-5","BC","WC")
 
 # set up factors
@@ -632,9 +630,7 @@ training.stats.subj$blocks.complete <- ifelse(training.stats.subj$N<62,1,
                                                      ifelse(training.stats.subj$N>120&training.stats.subj$N<182,3,NA)))
 
 # Summarize training performance across subjects.
-training.stats.avg <- training.stats.subj %>% 
-  group_by(block) %>% 
-  summarise(correct_response=mean(correct_response))
+training.stats.avg <- Rmisc::summarySE(data=training.sine, measurevar="correct_response",groupvars=c("block"))
 
 # Create figure showing training performance across sessions and difficulty levels.
 sine_training_fig <- ggplot(training.stats.subj,aes(x=block,y=correct_response)) +
