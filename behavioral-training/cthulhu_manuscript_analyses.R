@@ -500,7 +500,7 @@ ifelse(dprime_rb_lineplot$session==1&dprime_rb_lineplot$block=="posttest_discrim
 ifelse(dprime_rb_lineplot$session==2&dprime_rb_lineplot$block=="posttest_discrimination",5,
 ifelse(dprime_rb_lineplot$session==3&dprime_rb_lineplot$block=="posttest_discrimination",6,""))))))
 
-# Add factor to allow for translucent intervening lines and bold pre-test day 1 and post-test day 3 lines.
+# Add factor to allow for translucent intervening lines and bold Pretest day 1 and Posttest day 3 lines.
 dprime_rb_lineplot$plotting2 <- as.factor(ifelse(dprime_rb_lineplot$session==1&dprime_rb_lineplot$block=="pretest_discrimination"|
                                                    dprime_rb_lineplot$session==3&dprime_rb_lineplot$block=="posttest_discrimination",1,0))
 
@@ -510,7 +510,7 @@ dprime.relative.fig<-ggplot(dprime_rb_lineplot,aes(x=relative.bound,y=dprime,gro
   geom_line(aes(color=session,linetype=block,alpha=plotting2),stat='summary', fun.y='mean', size=2) +
   geom_errorbar(aes(ymin=dprime-se,ymax=dprime+se,color=session,alpha=plotting2),width=.25,size=1.25) +
   scale_color_brewer('Training day',palette="Set1") +
-  scale_linetype_discrete('Block',labels=c("Post-test","Pre-test")) +
+  scale_linetype_discrete('Block',labels=c("Posttest","Pretest")) +
   scale_alpha_manual(guide=FALSE,values=c(0.25,1)) +
   theme(text = element_text(size=16)) + 
   xlab("Token") + ylab("d' score")
@@ -525,7 +525,7 @@ ifelse(dprime_ab_lineplot$session==1&dprime_ab_lineplot$block=="posttest_discrim
 ifelse(dprime_ab_lineplot$session==2&dprime_ab_lineplot$block=="posttest_discrimination",5,
 ifelse(dprime_ab_lineplot$session==3&dprime_ab_lineplot$block=="posttest_discrimination",6,""))))))
 
-# Add factor to allow for translucent intervening lines and bold pre-test day 1 and post-test day 3 lines.
+# Add factor to allow for translucent intervening lines and bold Pretest day 1 and Posttest day 3 lines.
 dprime_ab_lineplot$plotting2 <- as.factor(ifelse(dprime_ab_lineplot$session==1&dprime_ab_lineplot$block=="pretest_discrimination"|
                                          dprime_ab_lineplot$session==3&dprime_ab_lineplot$block=="posttest_discrimination",1,0))
 
@@ -534,19 +534,19 @@ dprime.acoustic.fig <- ggplot(dprime_ab_lineplot,aes(x=stimulus,y=dprime,group=p
   geom_line(aes(color=session,linetype=block,alpha=plotting2),stat='summary', fun.y='mean', size=2) +
   geom_errorbar(aes(ymin=dprime-se,ymax=dprime+se,color=session,alpha=plotting2),width=.25,size=1.25) +
   scale_color_brewer('Training day',palette="Set1") +
-  scale_linetype_discrete('Block',labels=c("Post-test","Pre-test")) +
+  scale_linetype_discrete('Block',labels=c("Posttest","Pretest")) +
   scale_alpha_manual(guide=FALSE,values=c(0.25,1)) +
   theme(text = element_text(size=16)) + 
   xlab("Stimulus") + ylab("d' score")
 
-# Just pre-test and final post-test for clarity.
+# Just Pretest and final Posttest for clarity.
 day3_vow_discrim<-ggplot(subset(dprime_ab_lineplot,session==1&block=="pretest_discrimination"|session==3&block=="posttest_discrimination"),
               aes(x=stimulus,y=dprime,group=plotting,color=session)) +
   geom_point(aes(color=session),stat='summary', fun.y='mean', size=3.5) +
   geom_line(aes(color=session,linetype=block),stat='summary', fun.y='mean', size=2) +
   geom_errorbar(aes(ymin=dprime-se,ymax=dprime+se,color=session),width=.25,size=1.25) +
   scale_color_manual('Training day',values=c("#E41A1C","#4DAF4A")) +
-  scale_linetype_discrete('Block',labels=c("Post-test","Pre-test")) +
+  scale_linetype_discrete('Block',labels=c("Posttest","Pretest")) +
   theme(text = element_text(size=16)) + 
   xlab("Stimulus") + ylab("d' score")
   
@@ -993,7 +993,7 @@ sine_dprime_relative_fig <- ggplot(dprime_rb_lineplot,aes(x=relative.bound,y=dpr
   geom_point(stat='summary', fun.y='mean', size=3.5) +
   geom_line(aes(linetype=block),stat='summary', fun.y='mean', size=2) +
   geom_errorbar(aes(ymin=dprime-se,ymax=dprime+se),width=.25,size=1.25) +
-  scale_linetype_discrete('Block',labels=c("Post-test","Pre-test")) +
+  scale_linetype_discrete('Block',labels=c("Posttest","Pretest")) +
   ylab("d' score") +
   xlab('Token') +
   theme(text = element_text(size=16))
@@ -1005,7 +1005,7 @@ sine_dprime_fig <- ggplot(dprime_lineplot,aes(x=stimulus,y=dprime,group=block)) 
   geom_point(stat='summary', fun.y='mean', size=3.5) +
   geom_line(aes(linetype=block),stat='summary', fun.y='mean', size=2) +
   geom_errorbar(aes(ymin=dprime-se,ymax=dprime+se,linetype=block),width=.25,size=1.25) +
-  scale_linetype_discrete('Block',labels=c("Post-test","Pre-test")) +
+  scale_linetype_discrete('Block',labels=c("Posttest","Pretest")) +
   ylab("d' score") +
   xlab('Stimulus') +
   theme(text = element_text(size=16))
@@ -1097,12 +1097,13 @@ anova(lmem.relative.bound1,lmem.acoustic.bound1)
 
 # vowel d' figure
 plot_grid(vowel.training.fig,PC.fig,dprime.acoustic.fig,dprime.relative.fig,labels=c("A","B","C","D"),nrow = 2)
-ggsave("vowel_behavioral.pdf",dpi="retina",width=8.25,height=8,units="in")
+ggsave("../../../manuscript/vowel_behavioral.pdf",dpi="retina",width=14,height=10) # will have to change filepath here
 
 # sine behavioral figure 
 align_leftcol5 <- align_plots(sine_training_fig,sine_dprime_fig, align="hv", axis="tblr")
 align_rightcol5 <- align_plots(sine_PC_fig, sine_dprime_relative_fig, align="hv", axis="tblr")
 plot_grid(align_leftcol5[[1]],align_rightcol5[[1]],align_leftcol5[[2]],align_rightcol5[[2]],labels=c("A","B","C","D"))
+ggsave("../../../manuscript/sine_behavioral.pdf",dpi="retina",width=14,height=10)  # will have to change filepath here
 
 
 # Comparison of Vowel and Sine ####
